@@ -1,18 +1,34 @@
 import React from "react";
+import { HiArrowLeft } from "react-icons/hi";
 
 interface HeaderProps {
   onBack: () => void;
+  transparent?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ onBack }) => {
+const Header: React.FC<HeaderProps> = ({ onBack, transparent = false }) => {
+  const containerClass = `w-full flex justify-end items-center px-4 ${
+    transparent ? "" : "shadow-sm h-16"
+  }`;
+
+  const style = transparent
+    ? {
+        background:
+          "linear-gradient(to bottom, rgba(61, 90, 115, 0.85), rgba(61, 90, 115, 0))",
+        height: "96px",
+        borderBottom: "none",
+      }
+    : {
+        backgroundColor: "#3D5A73",
+      };
+
   return (
-    <div className="bg-slate-500/40 p-4 flex justify-end shadow-sm">
+    <div className={containerClass} style={style}>
       <button
         onClick={onBack}
-        className="flex items-center space-x-2 bg-white text-black px-5 py-2 rounded-full shadow-md hover:bg-gray-100 transition"
+        className="w-10 h-10 flex items-center justify-center hover:opacity-80 transition"
       >
-        <span className="text-xl">←</span>
-        <span className="text-lg font-medium">뒤로가기</span>
+        <HiArrowLeft className="w-10 h-10 text-white mr-20 flex-shrink-0" />
       </button>
     </div>
   );

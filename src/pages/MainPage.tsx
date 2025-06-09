@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../shared/components/Header";
+import FinancialInputModal from "../shared/components/FinancialInputModal"; // ✅ 모달 import
 
 const MainPage = () => {
   const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false); // ✅ 모달 상태
 
   const handleSearch = () => {
     console.log("검색 버튼 클릭됨");
@@ -12,6 +14,7 @@ const MainPage = () => {
 
   const handleDirectInput = () => {
     console.log("직접입력 버튼 클릭됨");
+    setIsModalOpen(true); // ✅ 모달 열기
   };
 
   const handleBack = () => {
@@ -24,12 +27,16 @@ const MainPage = () => {
       style={{
         backgroundImage:
           "url('https://spp.cmu.ac.th/wp-content/uploads/2020/06/smart-city-01-scaled.jpg')",
-          // "url('https://dnewpydm90vfx.cloudfront.net/wp-content/uploads/2024/07/shutterstock_1792992196-2-1.jpg')",
-          // "url('https://cdn.epnc.co.kr/news/photo/201909/92056_82752_5312.jpg')",
-          // "url('https://www.fashionbiz.co.kr/images/articleImg/textImg/1727833838347-0-1.jpg')",
-        }}
+      }}
     >
-      <Header onBack={handleBack} />
+     <Header onBack={handleBack} transparent />
+
+
+      {/* ✅ 모달 */}
+      <FinancialInputModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
 
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
         <div className="flex flex-row items-center space-x-4 flex-nowrap bg-white/80 p-4 rounded-xl shadow-lg backdrop-blur-sm">
@@ -47,10 +54,11 @@ const MainPage = () => {
             className="bg-white w-14 h-14 rounded flex items-center justify-center border border-blue-300 shadow hover:bg-blue-100 transition"
           >
             <img
-              src="https://cdn-icons-png.flaticon.com/512/17320/17320840.png"
-              alt="검색 아이콘"
-              className="w-7 h-7"
-            />
+  src="https://cdn-icons-png.flaticon.com/512/17320/17320840.png"
+  alt="검색 아이콘"
+  className="mt-2 ml-1 w-9 h-9"
+/>
+
           </button>
 
           <button
