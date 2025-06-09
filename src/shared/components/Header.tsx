@@ -1,4 +1,3 @@
-// src/shared/components/Header.tsx
 import React from "react";
 
 interface HeaderProps {
@@ -7,7 +6,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onBack }) => {
   return (
-    <div className="bg-gray-300 p-4 flex justify-end">
+    <div className="bg-slate-500/40 p-4 flex justify-end shadow-sm">
       <button
         onClick={onBack}
         className="flex items-center space-x-2 bg-white text-black px-5 py-2 rounded-full shadow-md hover:bg-gray-100 transition"
