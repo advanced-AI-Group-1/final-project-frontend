@@ -40,8 +40,15 @@ const FinancialInputModal: React.FC<Props> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="financial-modal bg-white rounded-xl shadow-2xl w-[620px] p-8 max-h-[85vh] overflow-y-auto">
+    
+     <div
+      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+      onClick={onClose} // ✅ 바깥 클릭 시 닫기
+    >
+      <div
+        className="financial-modal bg-white rounded-xl shadow-2xl w-[620px] p-8 max-h-[85vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()} // ✅ 내부 클릭은 닫힘 방지
+      >
         {/* 제목 */}
         <div className="flex items-center space-x-3 mb-4">
           <FaRegChartBar className="text-blue-600 text-xl" />
