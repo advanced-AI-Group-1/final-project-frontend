@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./FinancialInputModal.css";
 import { FaRegChartBar } from "react-icons/fa";
+import { useFinancialMutation } from "@/features/finanacial-form/service/financialService";
 
 interface Props {
   isOpen: boolean;
@@ -39,22 +40,46 @@ const FinancialInputModal: React.FC<Props> = ({ isOpen, onClose }) => {
     }));
   };
 
+  // ✅ useMutation 훅 연결
+  const { mutate, isLoading, isSuccess, error } = useFinancialMutation();
+
+  // ✅ 확인 버튼 눌렀을 때 실행될 함수
+  const handleSubmit = () => {
+    const numericData: Record<string, number> = {};
+    Object.entries(values).forEach(([key, value]) => {
+      const clean = value.replace(/[^0-9]/g, "");
+      numericData[key] = parseInt(clean || "0", 10);
+    });
+
+    mutate(
+      { financialData: numericData },
+      {
+        onSuccess: (res) => {
+          console.log("✅ 분석 결과:", res);
+          alert("분석 요청이 성공적으로 전송되었습니다!");
+          onClose();
+        },
+        onError: (err: any) => {
+          console.error("❌ 에러 발생:", err);
+          alert("요청 중 오류가 발생했습니다.");
+        },
+      }
+    );
+  };
+
   return (
-    
-     <div
+    <div
       className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-      onClick={onClose} // ✅ 바깥 클릭 시 닫기
+      onClick={onClose}
     >
       <div
         className="financial-modal bg-white rounded-xl shadow-2xl w-[620px] p-8 max-h-[85vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()} // ✅ 내부 클릭은 닫힘 방지
+        onClick={(e) => e.stopPropagation()}
       >
         {/* 제목 */}
         <div className="flex items-center space-x-3 mb-4">
           <FaRegChartBar className="text-blue-600 text-xl" />
-          <h2 className="text-2xl font-semibold text-gray-800">
-            직접 재무 입력
-          </h2>
+          <h2 className="text-2xl font-semibold text-gray-800">직접 재무 입력</h2>
         </div>
 
         {/* 입력 폼 */}
@@ -89,9 +114,13 @@ const FinancialInputModal: React.FC<Props> = ({ isOpen, onClose }) => {
             취소
           </button>
           <button
-            className="px-5 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm transition"
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className={`px-5 py-2 rounded-md ${
+              isLoading ? "bg-blue-300" : "bg-blue-600 hover:bg-blue-700"
+            } text-white font-semibold shadow-sm transition`}
           >
-            확인
+            {isLoading ? "분석 중..." : "확인"}
           </button>
         </div>
       </div>
