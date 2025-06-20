@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../shared/components/Header';
-import FinancialInputModal from '../shared/components/FinancialInputModal';
+import FinancialInputModal from '../features/finanacial-form/components/FinancialInputModal.tsx';
 
 const MainPage: React.FC = () => {
   const navigate = useNavigate();
