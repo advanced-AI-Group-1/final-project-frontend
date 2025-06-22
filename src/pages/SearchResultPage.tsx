@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '@/shared/components/Header';
 import FinancialInputModal from '@/features/finanacial-form/components/FinancialInputModal.tsx';
+import { useAtom } from 'jotai';
+import { companyInfoAtom, creditRatingAtom, financialDataAtom } from '@/shared/store/atoms.ts';
 
 // ✅ 정확한 위치에서 useQueryResult 불러오기
 import { useQueryResult } from '@/features/mainpage/service/queryService';
-import { useReportMutation } from '@/features/report/service/reportService';
+import { useReportMutation } from '@/features/report-generation/service/reportService';
 
 const SearchResultPage: React.FC = () => {
   const navigate = useNavigate();
@@ -24,17 +26,46 @@ const SearchResultPage: React.FC = () => {
   // ✅ 보고서 생성 mutation 훅 호출
   const reportMutation = useReportMutation();
 
+  // jotai atom
+  const [, setFinancialData] = useAtom(financialDataAtom);
+  const [, setCreditRating] = useAtom(creditRatingAtom);
+  const [, setCompanyInfo] = useAtom(companyInfoAtom);
+
   const handleBack = () => {
     navigate('/');
   };
 
   const handleSelect = (company: any) => {
-    if (isGeneratingReport) return;
+    if (isGeneratingReport) {
+      return;
+    }
 
     setIsGeneratingReport(true);
 
     // 보고서 생성 요청 데이터 준비
     const financialData = company.financial_statements.financial_data;
+
+    // jotai atom에 재무 데이터 저장
+    setFinancialData({
+      ROA: financialData.ROA,
+      ROE: financialData.ROE,
+      debt_ratio: financialData.debt_ratio,
+      asset_turnover_ratio: financialData.asset_turnover_ratio,
+      interest_to_assets_ratio: financialData.interest_to_assets_ratio || 0,
+    });
+
+    // 회사 정보 저장
+    setCompanyInfo({
+      company_name: company.company_name,
+      industry_name: financialData.industry_name,
+      market_type: financialData.market_type,
+    });
+
+    // 신용등급이 있으면 저장 (API에서 제공하는 경우)
+    if (financialData.credit_rating) {
+      setCreditRating(financialData.credit_rating);
+    }
+
     const reportRequest = {
       company_name: company.company_name,
       financial_data: {
@@ -53,7 +84,7 @@ const SearchResultPage: React.FC = () => {
         ROE: financialData.ROE,
         asset_turnover_ratio: financialData.asset_turnover_ratio,
       },
-      report_type: 'agent_based',
+      report_type: 'agent_based' as const,
     };
 
     // 보고서 생성 API 호출

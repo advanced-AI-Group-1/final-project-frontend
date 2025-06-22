@@ -1,5 +1,6 @@
 @import "./font.css";
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 @tailwind utilities;
 
 @theme{
@@ -86,5 +87,69 @@
   /* 로딩 스피너 */
   .spinner {
     @apply w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mb-2;
+  }
+
+  /* 보고서 스타일 커스터마이징 */
+  .report-prose {
+    @apply prose prose-lg max-w-none
+      prose-headings:text-blue-800 
+      prose-h1:text-2xl prose-h1:font-bold prose-h1:mb-4
+      prose-h2:text-xl prose-h2:font-semibold prose-h2:mt-6 prose-h2:mb-3
+      prose-p:text-gray-700 prose-p:leading-relaxed
+      prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
+      prose-strong:text-blue-700 prose-strong:font-semibold
+      prose-ul:my-4 prose-ul:list-disc prose-ul:pl-6
+      prose-ol:my-4 prose-ol:list-decimal prose-ol:pl-6
+      prose-li:my-1
+      prose-table:border-collapse prose-table:w-full
+      prose-th:bg-gray-100 prose-th:p-2 prose-th:border prose-th:border-gray-300
+      prose-td:p-2 prose-td:border prose-td:border-gray-300
+      prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic
+      prose-code:text-blue-800 prose-code:bg-gray-100 prose-code:px-1 prose-code:rounded;
+  }
+  
+  /* 보고서 섹션 스타일 */
+  .report-section {
+    @apply bg-white rounded-xl shadow-sm p-6 transition-all duration-300 hover:shadow-md border border-gray-100;
+  }
+  
+  /* 보고서 섹션 헤더 스타일 */
+  .report-section-header {
+    @apply border-b border-gray-200 pb-3 mb-4;
+  }
+  
+  /* 보고서 섹션 제목 스타일 */
+  .report-section-title {
+    @apply text-xl font-bold text-gray-800 mb-2;
+  }
+  
+  /* 보고서 섹션 설명 스타일 */
+  .report-section-description {
+    @apply text-gray-600 mb-4;
+  }
+  
+  /* 보고서 생성일 스타일 */
+  .report-date {
+    @apply text-right text-gray-500 text-sm mt-2;
+  }
+  
+  /* 핵심 정보 하이라이트 */
+  .highlight-info {
+    @apply bg-blue-50 border-l-4 border-blue-500 p-4 my-4;
+  }
+  
+  /* 경고 정보 하이라이트 */
+  .highlight-warning {
+    @apply bg-yellow-50 border-l-4 border-yellow-500 p-4 my-4;
+  }
+  
+  /* 긍정적 정보 하이라이트 */
+  .highlight-positive {
+    @apply bg-green-50 border-l-4 border-green-500 p-4 my-4;
+  }
+  
+  /* 부정적 정보 하이라이트 */
+  .highlight-negative {
+    @apply bg-red-50 border-l-4 border-red-500 p-4 my-4;
   }
 }
