@@ -10,7 +10,9 @@ const MainPage: React.FC = () => {
 
   const handleSearch = () => {
     const trimmed = searchInput.trim();
-    if (trimmed === '') return;
+    if (trimmed === '') {
+      return;
+    }
     navigate(`/search?keyword=${encodeURIComponent(trimmed)}`);
   };
 
@@ -42,7 +44,7 @@ const MainPage: React.FC = () => {
             className='drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] text-[#010440]'
             style={{ color: '#010440' }}
           >
-            "SheetAI"
+            SheetAI
           </span>
         </div>
 
@@ -53,7 +55,9 @@ const MainPage: React.FC = () => {
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             onKeyDown={e => {
-              if (e.key === 'Enter') handleSearch();
+              if (e.key === 'Enter') {
+                handleSearch();
+              }
             }}
             className='border border-blue-500 rounded px-6 h-14 w-[500px] text-xl placeholder-blue-300'
           />
