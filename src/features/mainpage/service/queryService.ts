@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import api from '@/shared/config/axios';
+import { useQuery } from "@tanstack/react-query";
+import api from "@/shared/config/axios";
 
 // 실제 요청 함수
 const fetchQueryResult = async (prompt: string, top_k: number) => {
