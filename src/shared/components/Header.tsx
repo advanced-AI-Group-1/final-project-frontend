@@ -30,6 +30,15 @@ const Header: React.FC<HeaderProps> = ({ onBack, transparent = false }) => {
         }}
       />
       <div className='m-auto'></div>
+      {/* log in 버튼 크기 더 키움 + 간격 넓힘 */}
+      <button
+        onClick={() => navigate('/login')}
+        className={`mr-8 text-xl font-bold ${
+          transparent ? 'text-white' : 'text-black'
+        } hover:opacity-80 transition`}
+      >
+        log in
+      </button>
       <button
         onClick={onBack}
         className='w-10 h-10 flex items-center justify-center hover:opacity-80 transition cursor-pointer'
