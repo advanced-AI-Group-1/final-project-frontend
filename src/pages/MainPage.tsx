@@ -42,7 +42,7 @@ const MainPage: React.FC = () => {
             className='drop-shadow-[0_0_10px_rgba(255,255,255,0.8)] text-[#010440]'
             style={{ color: '#010440' }}
           >
-            "SheetAI"
+            SheetAI
           </span>
         </div>
 

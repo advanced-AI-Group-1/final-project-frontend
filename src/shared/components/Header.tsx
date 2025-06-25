@@ -1,6 +1,8 @@
+// src/shared/components/Header.tsx
 import React from 'react';
 import { HiArrowLeft } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
 interface HeaderProps {
   onBack: () => void;
@@ -8,9 +10,20 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onBack, transparent = false }) => {
-  const containerClass = `w-full flex items-center px-4 py-2`;
+  const { isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
 
+  const handleClick = () => {
+    if (isLoggedIn) {
+      logout();
+      // navigate('/login');
+      navigate('/');
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const containerClass = `w-full flex items-center px-4 py-2`;
   const style = transparent
     ? {
         background: 'linear-gradient(to bottom, rgba(61, 90, 115, 0.85), rgba(61, 90, 115, 0))',
@@ -22,26 +35,25 @@ const Header: React.FC<HeaderProps> = ({ onBack, transparent = false }) => {
   return (
     <div className={containerClass} style={style}>
       <img
-        src='src/assets/image/logo.png'
-        alt='logo'
-        className='w-24 h-16 flex-shrink-0 cursor-pointer'
-        onClick={() => {
-          navigate('/');
-        }}
+        src="src/assets/image/logo.png"
+        alt="logo"
+        className="w-24 h-16 flex-shrink-0 cursor-pointer"
+        onClick={() => navigate('/')}
       />
-      <div className='m-auto'></div>
-      {/* log in 버튼 크기 더 키움 + 간격 넓힘 */}
+      <div className="m-auto"></div>
+
       <button
-        onClick={() => navigate('/login')}
+        onClick={handleClick}
         className={`mr-8 text-xl font-bold ${
           transparent ? 'text-white' : 'text-black'
         } hover:opacity-80 transition`}
       >
-        log in
+        {isLoggedIn ? 'log out' : 'log in'}
       </button>
+
       <button
         onClick={onBack}
-        className='w-10 h-10 flex items-center justify-center hover:opacity-80 transition cursor-pointer'
+        className="w-10 h-10 flex items-center justify-center hover:opacity-80 transition cursor-pointer"
       >
         <HiArrowLeft className={`w-10 h-10 ${transparent ? 'text-white' : ''} flex-shrink-0`} />
       </button>

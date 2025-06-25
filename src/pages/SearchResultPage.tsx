@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+// import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { dummyRelatedCompanies } from '@/shared/data/relatedCompanies';
 import Header from '@/shared/components/Header';
 import FinancialInputModal from '@/shared/components/FinancialInputModal';
+import { useAuth } from '@/context/AuthContext';
 
 // ✅ 정확한 위치에서 useQueryResult 불러오기
 import { useQueryResult } from '@/features/mainpage/service/queryService';
@@ -10,8 +12,19 @@ import { useQueryResult } from '@/features/mainpage/service/queryService';
 const SearchResultPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isLoggedIn } = useAuth();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [input, setInput] = useState('');
+
+
+   // ✅ 로그인 안 한 경우 리디렉션
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/login-required');
+    }
+  }, [isLoggedIn, navigate]);
+  
 
   // 🔍 URL에서 keyword 추출
   const queryParams = new URLSearchParams(location.search);
