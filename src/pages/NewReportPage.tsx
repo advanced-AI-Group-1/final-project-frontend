@@ -288,95 +288,148 @@ const NewReportPage: React.FC = () => {
   // 신용등급에 따른 색상과 진행률 결정
   const getRatingInfo = (rating: string) => {
     const configs = {
-      AAA: { color: 'text-emerald-600', progress: 95 },
-      AA: { color: 'text-emerald-600', progress: 90 },
-      'A+': { color: 'text-emerald-500', progress: 85 },
-      A: { color: 'text-emerald-500', progress: 80 },
-      'A-': { color: 'text-emerald-500', progress: 75 },
-      'B+': { color: 'text-amber-500', progress: 70 },
-      B: { color: 'text-amber-500', progress: 65 },
-      'B-': { color: 'text-amber-500', progress: 60 },
-      'C+': { color: 'text-red-500', progress: 45 },
-      C: { color: 'text-red-500', progress: 35 },
-      'C-': { color: 'text-red-500', progress: 25 },
-      D: { color: 'text-red-600', progress: 15 },
+      AAA: { color: '#059669', progress: 95 },
+      AA: { color: '#059669', progress: 90 },
+      'A+': { color: '#10B981', progress: 85 },
+      A: { color: '#10B981', progress: 80 },
+      'A-': { color: '#10B981', progress: 75 },
+      'B+': { color: '#F59E0B', progress: 70 },
+      B: { color: '#F59E0B', progress: 65 },
+      'B-': { color: '#F59E0B', progress: 60 },
+      'C+': { color: '#EF4444', progress: 45 },
+      C: { color: '#EF4444', progress: 35 },
+      'C-': { color: '#EF4444', progress: 25 },
+      D: { color: '#DC2626', progress: 15 },
     };
 
-    // Tailwind CSS 클래스에 맞게 색상 코드 변환
-    const colorMap: Record<string, string> = {
-      'text-emerald-600': '#059669',
-      'text-emerald-500': '#10B981',
-      'text-amber-500': '#F59E0B',
-      'text-red-500': '#EF4444',
-      'text-red-600': '#DC2626',
-    };
-
-    const ratingConfig = configs[rating as keyof typeof configs] || {
-      color: 'text-emerald-500',
-      progress: 80,
-    };
-
-    // PieChart에서 사용할 색상 코드 반환
-    return {
-      color: ratingConfig.color,
-      colorCode: colorMap[ratingConfig.color] || '#10B981',
-      progress: ratingConfig.progress,
-    };
+    return configs[rating as keyof typeof configs] || { color: '#6B7280', progress: 50 };
   };
 
-  // PDF 다운로드 함수
   const downloadPDF = async () => {
     if (!reportRef.current) {
       return;
     }
 
     try {
-      // PDF 렌더링 시작 - 스타일 조정
       setIsPDFRendering(true);
 
-      // 약간의 지연을 주어 리렌더링 완료 대기
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      const html2canvas = (await import('html2canvas')).default;
+      const domtoimage = await import('dom-to-image');
       const jsPDF = (await import('jspdf')).default;
 
-      // Tailwind CSS 클래스가 적용된 상태로 캔버스 생성
-      const canvas = await html2canvas(reportRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        height: reportRef.current.scrollHeight,
-        width: reportRef.current.scrollWidth,
-        logging: false,
-        ignoreElements: element => {
-          const style = window.getComputedStyle(element);
-          return style.backgroundImage.includes('oklch');
+      const element = reportRef.current;
+
+      // 원래 스타일 저장
+      const originalStyles = {
+        maxWidth: element.style.maxWidth,
+        width: element.style.width,
+        transform: element.style.transform,
+        position: element.style.position,
+        left: element.style.left,
+        top: element.style.top,
+      };
+
+      // PDF 생성을 위한 임시 스타일 적용
+      element.style.maxWidth = 'none';
+      element.style.width = '794px'; // A4 기준 고정 너비
+      element.style.transform = 'scale(1)';
+      element.style.position = 'static';
+      element.style.left = 'auto';
+      element.style.top = 'auto';
+
+      // 레이아웃 재계산을 위한 대기
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // 다시 크기 확인
+      const finalWidth = element.offsetWidth;
+      const finalHeight = element.scrollHeight;
+
+      console.log('Final dimensions after style adjustment:', {
+        offsetWidth: finalWidth,
+        scrollHeight: finalHeight,
+        clientWidth: element.clientWidth,
+        clientHeight: element.clientHeight,
+      });
+
+      // 고해상도로 전체 캡처
+      const dataUrl = await domtoimage.toPng(element, {
+        quality: 1,
+        bgcolor: '#ffffff',
+        width: finalWidth,
+        height: finalHeight,
+        style: {
+          margin: '0',
+          padding: '0',
+          boxSizing: 'border-box',
         },
       });
 
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
+      // 원래 스타일 복원
+      Object.assign(element.style, originalStyles);
 
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
+      const img = new Image();
 
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-      const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      const imgY = 0;
+      img.onload = () => {
+        console.log('Captured image dimensions:', {
+          width: img.width,
+          height: img.height,
+        });
 
-      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+        const pdf = new jsPDF('p', 'mm', 'a4');
 
-      // 회사명이 있으면 파일명에 추가
-      const companyName = getCompanyName();
-      pdf.save(`${companyName}_신용평가보고서.pdf`);
+        // A4 크기
+        const pdfWidth = 210; // mm
+        const pdfHeight = 297; // mm
+        const margin = 10; // mm
+
+        // 사용 가능한 영역
+        const availableWidth = pdfWidth - margin * 2;
+        const availableHeight = pdfHeight - margin * 2;
+
+        // 이미지 크기를 A4에 맞게 조정
+        const imgAspectRatio = img.width / img.height;
+        const pdfAspectRatio = availableWidth / availableHeight;
+
+        let finalPdfWidth, finalPdfHeight;
+
+        if (imgAspectRatio > pdfAspectRatio) {
+          // 이미지가 더 넓음 - 너비를 기준으로 조정
+          finalPdfWidth = availableWidth;
+          finalPdfHeight = availableWidth / imgAspectRatio;
+        } else {
+          // 이미지가 더 높음 - 높이를 기준으로 조정
+          finalPdfHeight = availableHeight;
+          finalPdfWidth = availableHeight * imgAspectRatio;
+        }
+
+        // 중앙 정렬
+        const x = (pdfWidth - finalPdfWidth) / 2;
+        const y = (pdfHeight - finalPdfHeight) / 2;
+
+        console.log('PDF layout:', {
+          x,
+          y,
+          finalPdfWidth,
+          finalPdfHeight,
+          imgAspectRatio,
+          pdfAspectRatio,
+        });
+
+        pdf.addImage(dataUrl, 'PNG', x, y, finalPdfWidth, finalPdfHeight);
+
+        const companyName = getCompanyName();
+        pdf.save(`${companyName}_신용평가보고서.pdf`);
+      };
+
+      img.onerror = error => {
+        console.error('Image load failed:', error);
+        alert('PDF 생성 중 이미지 로드에 실패했습니다.');
+      };
+
+      img.src = dataUrl;
     } catch (error) {
       console.error('PDF 생성 실패:', error);
-      alert('PDF 생성에 실패했습니다.');
+      alert('PDF 생성에 실패했습니다: ' + error.message);
     } finally {
-      // PDF 렌더링 완료 - 원래 스타일로 복원
       setIsPDFRendering(false);
     }
   };
@@ -475,7 +528,7 @@ const NewReportPage: React.FC = () => {
 
   // Recharts용 데이터
   const chartData = [
-    { name: 'progress', value: ratingInfo.progress, fill: ratingInfo.colorCode },
+    { name: 'progress', value: ratingInfo.progress, fill: ratingInfo.color },
     { name: 'remaining', value: 100 - ratingInfo.progress, fill: '#e5e7eb' },
   ];
 
@@ -487,7 +540,7 @@ const NewReportPage: React.FC = () => {
           onClick={downloadPDF}
           className='px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-medium text-base shadow-lg hover:bg-blue-700 transition-colors'
         >
-          📄 PDF 다운로드
+          PDF 다운로드
         </button>
       </div>
 
@@ -630,6 +683,8 @@ const NewReportPage: React.FC = () => {
             </div>
           </div>
 
+          {/* 재무 건전성, 사업 위험, 산업 전망 추가 예정*/}
+
           {/* 섹션별 내용 */}
           {(() => {
             const sections = (() => {
@@ -666,9 +721,7 @@ const NewReportPage: React.FC = () => {
             <div className='text-sm text-gray-500 mb-2'>
               본 보고서는 AI에 의해 자동 생성되었으며, 참고용으로만 사용하시기 바랍니다.
             </div>
-            <div className='text-sm text-gray-400'>
-              {new Date().getFullYear()} Financial AI Analysis
-            </div>
+            <div className='text-sm text-gray-400'>{new Date().getFullYear()} SheetAI</div>
           </div>
         </div>
       </div>
