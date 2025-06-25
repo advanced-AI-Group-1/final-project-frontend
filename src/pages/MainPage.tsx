@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../shared/components/Header';
-import FinancialInputModal from '../shared/components/FinancialInputModal';
+import FinancialInputModal from '../features/finanacial-form/components/FinancialInputModal.tsx';
 
 const MainPage: React.FC = () => {
   const navigate = useNavigate();
@@ -10,7 +10,9 @@ const MainPage: React.FC = () => {
 
   const handleSearch = () => {
     const trimmed = searchInput.trim();
-    if (trimmed === '') return;
+    if (trimmed === '') {
+      return;
+    }
     navigate(`/search?keyword=${encodeURIComponent(trimmed)}`);
   };
 
@@ -53,7 +55,9 @@ const MainPage: React.FC = () => {
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             onKeyDown={e => {
-              if (e.key === 'Enter') handleSearch();
+              if (e.key === 'Enter') {
+                handleSearch();
+              }
             }}
             className='border border-blue-500 rounded px-6 h-14 w-[500px] text-xl placeholder-blue-300'
           />
