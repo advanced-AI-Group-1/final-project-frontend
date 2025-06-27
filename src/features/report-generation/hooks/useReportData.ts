@@ -11,12 +11,16 @@ import CreditRatingUtils from '@/features/report-generation/util/CreditRatingUti
 import { ReportDataExtractor } from '@/features/report-generation/util/ReportDataExtractor.ts';
 
 export const useReportData = (companyData: any, initialData: ReportData | null) => {
+  console.log('useReportData - companyData:', companyData);
+  console.log('useReportData - initialData:', initialData);
+
   return useQuery({
     queryKey: ['reportData', companyData?.company_name],
     queryFn: () =>
       ReportApiService.fetchReportData(
         companyData?.company_name,
-        companyData?.financial_statements?.financial_data
+        companyData?.financial_data,
+        companyData?.similarity_score
       ),
     enabled: !!companyData && !initialData,
     initialData: initialData,

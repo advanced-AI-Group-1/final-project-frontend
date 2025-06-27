@@ -30,23 +30,45 @@ const NewReportPage: React.FC = () => {
   const initialData = location.state?.reportData as ReportData;
   const companyData = location.state?.companyData;
 
+  // 디버깅을 위한 로그 추가
+  console.log('NewReportPage - location.state:', location.state);
+  console.log('NewReportPage - initialData:', initialData);
+
+  // 보고서 데이터가 이미 있는 경우 바로 사용
+  const hasReportData = !!initialData;
+
   // Atom data
   const [storedFinancialData] = useAtom(financialDataAtom);
   const [storedCreditRating] = useAtom(creditRatingAtom);
 
   // Data fetching and processing
   const { data: reportData, isLoading, error } = useReportData(companyData, initialData);
-  const financialMetrics = useFinancialMetrics(reportData);
-  const creditRating = useCreditRating(reportData, storedCreditRating);
+  
+  // 디버깅을 위한 로그 추가
+  console.log('NewReportPage - reportData:', reportData);
+  console.log('NewReportPage - isLoading:', isLoading);
+  console.log('NewReportPage - error:', error);
+
+  // 데이터가 없는 경우 초기 데이터를 직접 사용
+  const finalReportData = reportData || initialData;
+
+  const financialMetrics = useFinancialMetrics(finalReportData);
+  const creditRating = useCreditRating(finalReportData, storedCreditRating);
   const ratingInfo = CreditRatingUtils.getRatingInfo(creditRating);
   const chartData = useReportChartData(creditRating);
 
   // Data extraction
-  const companyName = ReportDataExtractor.getCompanyName(reportData);
-  const subtitle = ReportDataExtractor.getSubtitle(reportData);
-  const generationDate = ReportDataExtractor.getGenerationDate(reportData);
-  const industryInfo = ReportDataExtractor.getIndustryInfo(reportData);
-  const sections = ReportDataExtractor.getSections(reportData);
+  const companyName = ReportDataExtractor.getCompanyName(finalReportData);
+  const subtitle = ReportDataExtractor.getSubtitle(finalReportData);
+  const generationDate = ReportDataExtractor.getGenerationDate(finalReportData);
+  const industryInfo = ReportDataExtractor.getIndustryInfo(finalReportData);
+  const sections = ReportDataExtractor.getSections(finalReportData);
+  
+  // 새로운 구조화된 요약 카드 데이터 추출
+  const summaryCardData = finalReportData?.json?.summary_card_structured || finalReportData?.summary_card_structured;
+
+  // 디버깅을 위한 로그 추가
+  console.log('NewReportPage - summaryCardData:', summaryCardData);
 
   // Event handlers
   const handleBack = () => navigate(-1);
@@ -72,7 +94,7 @@ const NewReportPage: React.FC = () => {
   if (error) {
     return <div>오류가 발생했습니다: {(error as Error).message}</div>;
   }
-  if (!reportData) {
+  if (!finalReportData) {
     return <div>보고서 데이터가 없습니다.</div>;
   }
 
@@ -136,7 +158,7 @@ const NewReportPage: React.FC = () => {
             generationDate={generationDate}
             creditRating={creditRating}
             ratingInfo={ratingInfo}
-            financialMetrics={financialMetrics}
+            summaryCardData={summaryCardData}
           />
 
           <CreditRatingSection

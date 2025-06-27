@@ -1,7 +1,7 @@
 import React from 'react';
 import type {
-  FinancialMetrics,
   RatingInfo,
+  SummaryCardStructured,
 } from '@/features/report-generation/types/ReportTypes.ts';
 
 interface SummaryCardProps {
@@ -9,130 +9,203 @@ interface SummaryCardProps {
   generationDate: string;
   creditRating: string | null;
   ratingInfo: RatingInfo;
-  financialMetrics: FinancialMetrics;
+  summaryCardData?: SummaryCardStructured;
 }
-
-interface FinancialMetricItemProps {
-  value: number;
-  label: string;
-  suffix: string;
-  isGood: boolean;
-  status: string;
-}
-
-const FinancialMetricItem: React.FC<FinancialMetricItemProps> = ({
-  value,
-  label,
-  suffix,
-  isGood,
-  status,
-}) => (
-  <div>
-    <div className={`text-2xl font-bold mb-1 ${isGood ? 'text-emerald-600' : 'text-red-500'}`}>
-      {value}
-      {suffix}
-    </div>
-    <div className='text-xs text-gray-600'>
-      {label} ({status})
-    </div>
-  </div>
-);
-
-const FinancialMetricsGrid: React.FC<{ metrics: FinancialMetrics }> = ({ metrics }) => (
-  <div>
-    <div className='text-sm font-semibold text-gray-700 mb-3'>핵심 재무지표:</div>
-    <div className='grid grid-cols-4 gap-4 text-center'>
-      <FinancialMetricItem
-        value={metrics.roa}
-        label='ROA'
-        suffix='%'
-        isGood={metrics.roa > 5}
-        status={metrics.roa > 5 ? '양호' : '주의'}
-      />
-      <FinancialMetricItem
-        value={metrics.roe}
-        label='ROE'
-        suffix='%'
-        isGood={metrics.roe > 8}
-        status={metrics.roe > 8 ? '양호' : '주의'}
-      />
-      <FinancialMetricItem
-        value={metrics.debtRatio}
-        label='부채비율'
-        suffix='%'
-        isGood={metrics.debtRatio < 200}
-        status={metrics.debtRatio < 200 ? '보통' : '주의'}
-      />
-      <FinancialMetricItem
-        value={metrics.operatingProfitMargin}
-        label='영업이익률'
-        suffix='%'
-        isGood={metrics.operatingProfitMargin > 10}
-        status={metrics.operatingProfitMargin > 10 ? '우수' : '주의'}
-      />
-    </div>
-  </div>
-);
 
 const ReportSummaryCard: React.FC<SummaryCardProps> = ({
   companyName,
   generationDate,
   creditRating,
   ratingInfo,
-  financialMetrics,
-}) => (
-  <div className='bg-blue-50 rounded-lg p-6 mb-8 border-l-4 border-blue-500 avoid-break'>
-    <div className='flex items-center mb-4'>
-      <div className='bg-blue-500 rounded-full p-0.5 mr-3'>
-        <span className='text-blue-600'>📊</span>
-      </div>
-      <h3 className='text-xl font-bold text-gray-800'>신용분석 요약 카드</h3>
-    </div>
-    <div>
-      <div className='mb-6 flex'>
-        <div className='flex flex-col gap-2'>
-          <div className='text-sm text-gray-600 mb-1'>
-            <span className='font-semibold text-gray-800'>기업명: </span>
-            <span>{companyName}</span>
+  summaryCardData,
+}) => {
+  // 데이터가 없는 경우 기본 렌더링
+  if (!summaryCardData) {
+    return (
+      <div className='bg-blue-50 rounded-lg p-6 mb-8 border-l-4 border-blue-500'>
+        <div className='flex items-center mb-4'>
+          <div className='bg-blue-500 rounded-full p-0.5 mr-3'>
+            <span className='text-blue-600'>📊</span>
           </div>
-          <div className='text-sm text-gray-600 mb-1'>
-            <span className='font-semibold text-gray-800'>평가일자: </span>
-            {generationDate}
-          </div>
-          <div>
-            <div className='text-sm text-gray-600 mb-1'>
-              <span className='font-semibold text-gray-800'>신용등급: </span>
-              {creditRating ? (
-                <span className='font-bold ml-0.5' style={{ color: ratingInfo.color }}>
-                  {creditRating}
-                </span>
-              ) : (
-                <span className='font-medium ml-0.5 text-gray-500 bg-gray-100 px-2 py-1 rounded text-xs'>
-                  평가 불가
-                </span>
-              )}
+          <h3 className='text-xl font-bold text-gray-800'>신용분석 요약 카드</h3>
+        </div>
+        <div>
+          <div className='mb-6 flex'>
+            <div className='flex flex-col gap-2'>
+              <div className='text-sm text-gray-600 mb-1'>
+                <span className='font-semibold text-gray-800'>기업명: </span>
+                <span>{companyName}</span>
+              </div>
+              <div className='text-sm text-gray-600 mb-1'>
+                <span className='font-semibold text-gray-800'>평가일자: </span>
+                {generationDate}
+              </div>
+              <div>
+                <div className='text-sm text-gray-600 mb-1'>
+                  <span className='font-semibold text-gray-800'>신용등급: </span>
+                  {creditRating ? (
+                    <span className='font-bold ml-0.5' style={{ color: ratingInfo.color }}>
+                      {creditRating}
+                    </span>
+                  ) : (
+                    <span className='font-medium ml-0.5 text-gray-500 bg-gray-100 px-2 py-1 rounded text-xs'>
+                      평가 불가
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className='m-auto' />
+            <div className='flex flex-col gap-3'>
+              <div className='text-sm text-gray-600'>
+                <span className='font-semibold text-gray-800'>주요 강점 키워드: </span>
+              </div>
+              <div className='text-sm text-gray-700 break-words mb-1 font-light'>
+                강한 재무건전성, 안정적인 신용 전망, 높은 이익률
+              </div>
+              <div className='text-sm text-gray-600'>
+                <span className='font-semibold text-gray-800'>주요 약점 키워드: </span>
+              </div>
+              <div className='text-sm text-gray-700 break-words font-light'>
+                시장 위험, 부채비율 증가, 매출증장 불확실성
+              </div>
             </div>
           </div>
         </div>
-        <div className='m-auto' />
-        <div className='flex flex-col gap-3'>
-          <div className='text-sm text-gray-600'>
-            <span className='font-semibold text-gray-800'>주요 강점 키워드: </span>
+        <div>
+          <div className='text-sm font-semibold text-gray-700 mb-3'>핵심 재무지표:</div>
+          <div className='grid grid-cols-4 gap-4 text-center'>
+            <div>
+              <div className='text-2xl font-bold text-gray-400 mb-1'>-</div>
+              <div className='text-xs text-gray-600'>ROA (미정)</div>
+            </div>
+            <div>
+              <div className='text-2xl font-bold text-gray-400 mb-1'>-</div>
+              <div className='text-xs text-gray-600'>ROE (미정)</div>
+            </div>
+            <div>
+              <div className='text-2xl font-bold text-gray-400 mb-1'>-</div>
+              <div className='text-xs text-gray-600'>부채비율 (미정)</div>
+            </div>
+            <div>
+              <div className='text-2xl font-bold text-gray-400 mb-1'>-</div>
+              <div className='text-xs text-gray-600'>영업이익률 (미정)</div>
+            </div>
           </div>
-          <div className='text-sm text-gray-700 break-words mb-1 font-light'>
-            강한 재무건전성, 안정적인 신용 전망, 높은 이익률
+        </div>
+      </div>
+    );
+  }
+
+  // 평가에 따른 색상 결정
+  const getColorByEvaluation = (evaluationText: string) => {
+    if (evaluationText.includes('양호') || evaluationText.includes('우수')) return 'text-emerald-600';
+    if (evaluationText.includes('낮음') || evaluationText.includes('높은') || evaluationText.includes('주의')) return 'text-red-500';
+    return 'text-orange-600'; // 보통, 중간 등
+  };
+
+  // summaryCardData에서 강점과 약점 추출
+  const strengthsText = summaryCardData.strengths.join(', ');
+  const weaknessesText = summaryCardData.weaknesses.join(', ');
+
+  return (
+    <div className='bg-blue-50 rounded-lg p-6 mb-8 border-l-4 border-blue-500'>
+      <div className='flex items-center mb-4'>
+        <div className='bg-blue-500 rounded-full p-0.5 mr-3'>
+          <span className='text-blue-600'>📊</span>
+        </div>
+        <h3 className='text-xl font-bold text-gray-800'>신용분석 요약 카드</h3>
+      </div>
+      <div>
+        <div className='mb-6 flex'>
+          <div className='flex flex-col gap-2'>
+            <div className='text-sm text-gray-600 mb-1'>
+              <span className='font-semibold text-gray-800'>기업명: </span>
+              <span>{summaryCardData.company_name}</span>
+            </div>
+            <div className='text-sm text-gray-600 mb-1'>
+              <span className='font-semibold text-gray-800'>평가일자: </span>
+              {summaryCardData.evaluation_date}
+            </div>
+            <div>
+              <div className='text-sm text-gray-600 mb-1'>
+                <span className='font-semibold text-gray-800'>신용등급: </span>
+                {summaryCardData.credit_rating ? (
+                  <span className='font-bold ml-0.5' style={{ color: ratingInfo.color }}>
+                    {summaryCardData.credit_rating}
+                  </span>
+                ) : (
+                  <span className='font-medium ml-0.5 text-gray-500 bg-gray-100 px-2 py-1 rounded text-xs'>
+                    평가 불가
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
-          <div className='text-sm text-gray-600'>
-            <span className='font-semibold text-gray-800'>주요 약점 키워드: </span>
+          <div className='m-auto' />
+          <div className='flex flex-col gap-3'>
+            <div className='text-sm text-gray-600'>
+              <span className='font-semibold text-gray-800'>주요 강점 키워드: </span>
+            </div>
+            <div className='text-sm text-gray-700 break-words mb-1 font-light'>
+              {strengthsText}
+            </div>
+            <div className='text-sm text-gray-600'>
+              <span className='font-semibold text-gray-800'>주요 약점 키워드: </span>
+            </div>
+            <div className='text-sm text-gray-700 break-words font-light'>
+              {weaknessesText}
+            </div>
           </div>
-          <div className='text-sm text-gray-700 break-words font-light'>
-            시장 위험, 부채비율 증가, 매출증장 불확실성
+        </div>
+      </div>
+      <div>
+        <div className='text-sm font-semibold text-gray-700 mb-3'>핵심 재무지표:</div>
+        <div className='grid grid-cols-4 gap-4 text-center'>
+          <div>
+            <div
+              className={`text-2xl font-bold mb-1 ${getColorByEvaluation(summaryCardData.financial_metrics.roa.evaluation)}`}
+            >
+              {summaryCardData.financial_metrics.roa.value}%
+            </div>
+            <div className='text-xs text-gray-600'>
+              ROA ({summaryCardData.financial_metrics.roa.evaluation})
+            </div>
+          </div>
+          <div>
+            <div
+              className={`text-2xl font-bold mb-1 ${getColorByEvaluation(summaryCardData.financial_metrics.roe.evaluation)}`}
+            >
+              {summaryCardData.financial_metrics.roe.value}%
+            </div>
+            <div className='text-xs text-gray-600'>
+              ROE ({summaryCardData.financial_metrics.roe.evaluation})
+            </div>
+          </div>
+          <div>
+            <div
+              className={`text-2xl font-bold mb-1 ${getColorByEvaluation(summaryCardData.financial_metrics.debt_ratio.evaluation)}`}
+            >
+              {summaryCardData.financial_metrics.debt_ratio.value}%
+            </div>
+            <div className='text-xs text-gray-600'>
+              부채비율 ({summaryCardData.financial_metrics.debt_ratio.evaluation})
+            </div>
+          </div>
+          <div>
+            <div
+              className={`text-2xl font-bold mb-1 ${getColorByEvaluation(summaryCardData.financial_metrics.operating_profit_margin.evaluation)}`}
+            >
+              {summaryCardData.financial_metrics.operating_profit_margin.value}%
+            </div>
+            <div className='text-xs text-gray-600'>
+              영업이익률 ({summaryCardData.financial_metrics.operating_profit_margin.evaluation})
+            </div>
           </div>
         </div>
       </div>
     </div>
-    <FinancialMetricsGrid metrics={financialMetrics} />
-  </div>
-);
+  );
+};
 
 export default ReportSummaryCard;

@@ -43,46 +43,62 @@ const SearchResultPage: React.FC = () => {
     setIsGeneratingReport(true);
 
     // 보고서 생성 요청 데이터 준비
-    const financialData = company.financial_statements.financial_data;
+    const financialData = company.financial_data;
 
     // jotai atom에 재무 데이터 저장
     setFinancialData({
-      ROA: financialData.ROA,
-      ROE: financialData.ROE,
-      debt_ratio: financialData.debt_ratio,
-      asset_turnover_ratio: financialData.asset_turnover_ratio,
-      interest_to_assets_ratio: financialData.interest_to_assets_ratio || 0,
+      ROA: financialData?.ROA || 0,
+      ROE: financialData?.ROE || 0,
+      debt_ratio: financialData?.debt_ratio || 0,
+      asset_turnover_ratio: financialData?.asset_turnover_ratio || 0,
+      interest_to_assets_ratio: financialData?.interest_to_assets_ratio || 0,
     });
 
     // 회사 정보 저장
     setCompanyInfo({
       company_name: company.company_name,
-      industry_name: financialData.industry_name,
-      market_type: financialData.market_type,
+      industry_name: financialData?.industry_name || '정보 없음',
+      market_type: financialData?.market_type || '정보 없음',
     });
 
     // 신용등급이 있으면 저장 (API에서 제공하는 경우)
-    if (financialData.credit_rating) {
+    if (financialData?.credit_rating) {
       setCreditRating(financialData.credit_rating);
     }
 
     const reportRequest = {
       company_name: company.company_name,
+      similarity_score: company.similarity_score,
       financial_data: {
-        corp_code: financialData.corp_code,
-        corp_name: financialData.corp_name,
-        market_type: financialData.market_type,
-        industry_name: financialData.industry_name,
-        revenue: financialData.revenue,
-        operating_profit: financialData.operating_profit,
-        net_income: financialData.net_income,
-        total_assets: financialData.total_assets,
-        total_liabilities: financialData.total_liabilities,
-        total_equity: financialData.total_equity,
-        debt_ratio: financialData.debt_ratio,
-        ROA: financialData.ROA,
-        ROE: financialData.ROE,
-        asset_turnover_ratio: financialData.asset_turnover_ratio,
+        corp_code: financialData?.corp_code || '',
+        corp_name: financialData?.corp_name || '',
+        market_type: financialData?.market_type || '',
+        industry_name: financialData?.industry_name || '',
+        is_consolidated: financialData?.is_consolidated || false,
+        revenue: financialData?.revenue || 0,
+        operating_profit: financialData?.operating_profit || 0,
+        net_income: financialData?.net_income || 0,
+        total_assets: financialData?.total_assets || 0,
+        total_liabilities: financialData?.total_liabilities || 0,
+        total_equity: financialData?.total_equity || 0,
+        capital: financialData?.capital || 0,
+        operating_cash_flow: financialData?.operating_cash_flow || 0,
+        interest_bearing_debt: financialData?.interest_bearing_debt || 0,
+        debt_ratio: financialData?.debt_ratio || 0,
+        ROA: financialData?.ROA || 0,
+        ROE: financialData?.ROE || 0,
+        asset_turnover_ratio: financialData?.asset_turnover_ratio || 0,
+        interest_to_assets_ratio: financialData?.interest_to_assets_ratio || 0,
+        interest_to_revenue_ratio: financialData?.interest_to_revenue_ratio || 0,
+        cash_flow_to_interest: financialData?.cash_flow_to_interest || null,
+        interest_to_cash_flow: financialData?.interest_to_cash_flow || null,
+        log_total_assets: financialData?.log_total_assets || 0,
+        log_total_liabilities: financialData?.log_total_liabilities || 0,
+        positive_factors: financialData?.positive_factors || null,
+        negative_factors: financialData?.negative_factors || null,
+        description:
+          financialData?.description ||
+          `${company.company_name} - ${financialData?.industry_name || ''} - ${financialData?.market_type || ''}`,
       },
       report_type: 'agent_based' as const,
     };
@@ -90,9 +106,32 @@ const SearchResultPage: React.FC = () => {
     // 보고서 생성 API 호출
     reportMutation.mutate(reportRequest, {
       onSuccess: data => {
+        console.log('보고서 생성 성공:', data);
         setIsGeneratingReport(false);
+        
+        // 데이터가 유효한지 확인
+        if (!data) {
+          console.error('보고서 데이터가 없습니다.');
+          alert('보고서 데이터를 받지 못했습니다.');
+          return;
+        }
+        
         // 보고서 페이지로 이동하면서 데이터 전달
-        navigate('/report', { state: { reportData: data } });
+        try {
+          navigate('/report', { 
+            state: { 
+              reportData: data,
+              companyData: {
+                company_name: company.company_name,
+                financial_data: company.financial_data,
+                similarity_score: company.similarity_score
+              }
+            } 
+          });
+        } catch (error) {
+          console.error('페이지 이동 오류:', error);
+          alert('페이지 이동 중 오류가 발생했습니다.');
+        }
       },
       onError: error => {
         setIsGeneratingReport(false);
@@ -187,13 +226,13 @@ const SearchResultPage: React.FC = () => {
                       {company.company_name}
                     </div>
                     <div className='text-sm text-blue-500'>
-                      산업: {company.financial_statements.industry_name}
+                      산업: {company.financial_data?.industry_name || '정보 없음'}
                     </div>
                     <div className='text-sm text-blue-500'>
-                      시장: {company.financial_statements.market_type}
+                      시장: {company.financial_data?.market_type || '정보 없음'}
                     </div>
                     <div className='text-sm text-green-600'>
-                      유사도 점수: {(1 - Math.abs(company.similarity_score)).toFixed(2)}
+                      유사도 점수: {Math.abs(company.similarity_score || 0).toFixed(2)}
                     </div>
                   </div>
                 ))}

@@ -1,9 +1,15 @@
-import type { IndustryInfo, ReportData } from '@/features/report-generation/types/ReportTypes.ts';
+import type { IndustryInfo, ReportData, SummaryCardStructured } from '@/features/report-generation/types/ReportTypes.ts';
 
 export class ReportDataExtractor {
   static getCompanyName(reportData: ReportData | null): string {
     if (!reportData) {
       return '보고서';
+    }
+
+    // 구조화된 요약 카드에서 회사명 추출 시도
+    const structuredData = this.getStructuredData(reportData);
+    if (structuredData && structuredData.company_name) {
+      return structuredData.company_name;
     }
 
     if ('json' in reportData && reportData.json) {
@@ -33,6 +39,12 @@ export class ReportDataExtractor {
     const defaultDate = '2025년 06월 23일';
     if (!reportData) {
       return defaultDate;
+    }
+
+    // 구조화된 요약 카드에서 평가일자 추출 시도
+    const structuredData = this.getStructuredData(reportData);
+    if (structuredData && structuredData.evaluation_date) {
+      return structuredData.evaluation_date;
     }
 
     if ('json' in reportData && reportData.json?.report_data) {
@@ -94,13 +106,25 @@ export class ReportDataExtractor {
       return storedCreditRating;
     }
 
-    // 2. json 속성이 있는 경우
+    // 2. 구조화된 요약 카드에서 신용등급 추출 시도
+    const structuredData = this.getStructuredData(reportData);
+    if (structuredData && structuredData.credit_rating) {
+      console.log('구조화된 요약 카드에서 신용등급 가져옴:', structuredData.credit_rating);
+      return structuredData.credit_rating;
+    }
+
+    // 3. json 속성이 있는 경우
     if ('json' in reportData && reportData.json) {
       return this.extractFromJson(reportData.json);
     }
 
-    // 3. json 속성이 없는 경우
+    // 4. json 속성이 없는 경우
     return this.extractFromReportData(reportData);
+  }
+
+  private static getStructuredData(reportData: ReportData): SummaryCardStructured | null {
+    // json 내부 또는 최상위에서 summary_card_structured 찾기
+    return reportData?.json?.summary_card_structured || reportData?.summary_card_structured || null;
   }
 
   private static extractFromJson(json: ReportData['json']): string | null {

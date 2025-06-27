@@ -24,6 +24,7 @@ export interface ReportData {
     generated_at: string;
     report_type: string;
     credit_rating?: string;
+    summary_card_structured?: SummaryCardStructured;
   };
   company_name?: string;
   report_data?: {
@@ -49,6 +50,7 @@ export interface ReportData {
   generated_at?: string;
   report_type?: string;
   credit_rating?: string;
+  summary_card_structured?: SummaryCardStructured;
 }
 
 export interface FinancialMetrics {
@@ -73,4 +75,37 @@ export interface ChartDataItem {
   name: string;
   value: number;
   fill: string;
+}
+
+export interface SummaryCardStructured {
+  company_name: string;
+  evaluation_date: string;
+  credit_rating: string;
+  strengths: string[];
+  weaknesses: string[];
+  financial_metrics: {
+    roa: {
+      value: number;
+      evaluation: string;
+    };
+    roe: {
+      value: number;
+      evaluation: string;
+    };
+    debt_ratio: {
+      value: number;
+      evaluation: string;
+    };
+    operating_profit_margin: {
+      value: number;
+      evaluation: string;
+    };
+  };
+  credit_rating_trend: {
+    direction: string;
+    reason: string;
+  };
+  financial_stability: string;
+  business_risk: string;
+  industry_outlook: string;
 }

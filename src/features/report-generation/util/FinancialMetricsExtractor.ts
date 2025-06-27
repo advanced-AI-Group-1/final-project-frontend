@@ -1,6 +1,7 @@
 import type {
   FinancialMetrics,
   ReportData,
+  SummaryCardStructured,
 } from '@/features/report-generation/types/ReportTypes.ts';
 
 export default class FinancialMetricsExtractor {
@@ -17,12 +18,33 @@ export default class FinancialMetricsExtractor {
     }
 
     try {
+      // 먼저 구조화된 요약 카드 데이터에서 재무 지표를 추출 시도
+      const structuredData = this.getStructuredData(reportData);
+      if (structuredData) {
+        return this.extractFromStructuredData(structuredData);
+      }
+      
+      // 구조화된 데이터가 없으면 기존 방식으로 추출
       const content = this.getDetailedContent(reportData);
       return this.parseMetricsFromContent(content, defaultMetrics);
     } catch (error) {
       console.error('재무 지표 추출 중 오류:', error);
       return defaultMetrics;
     }
+  }
+
+  private static getStructuredData(reportData: ReportData): SummaryCardStructured | null {
+    // json 내부 또는 최상위에서 summary_card_structured 찾기
+    return reportData?.json?.summary_card_structured || reportData?.summary_card_structured || null;
+  }
+
+  private static extractFromStructuredData(data: SummaryCardStructured): FinancialMetrics {
+    return {
+      roa: data.financial_metrics.roa.value,
+      roe: data.financial_metrics.roe.value,
+      debtRatio: data.financial_metrics.debt_ratio.value,
+      operatingProfitMargin: data.financial_metrics.operating_profit_margin.value,
+    };
   }
 
   private static getDetailedContent(reportData: ReportData): string {
