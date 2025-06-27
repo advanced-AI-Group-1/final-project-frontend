@@ -1,12 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; 
 import { useNavigate } from 'react-router-dom';
 import Header from '../shared/components/Header';
 import FinancialInputModal from '../features/finanacial-form/components/FinancialInputModal.tsx';
+
+import api from "@/shared/config/axios";
+
 
 const MainPage: React.FC = () => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
+
+  // ✅✅✅ 여기! 리다이렉트로 받은 token 저장
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token'); 
+    if (token) {
+      console.log('[OAuth2] 받은 JWT:', token);
+      localStorage.setItem('token', token);
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+      // 👉 URL 깔끔하게 처리
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else {
+      // 페이지 새로고침 시에도 axios 헤더에 붙여주기
+      const saved = localStorage.getItem('token');
+      if (saved) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${saved}`;
+      }
+    }
+  }, []);
+
 
   const handleSearch = () => {
     const trimmed = searchInput.trim();

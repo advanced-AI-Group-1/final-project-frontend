@@ -78,7 +78,16 @@ const LoginRegisterContainer: React.FC = () => {
               <a href="#">비밀번호 찾기</a>
               <a href="#">아이디 찾기</a>
             </div>
-            <button type="button" className={styles.googleButton}>구글로 시작하기</button>
+            <button
+  type="button"
+  className={styles.googleButton}
+  onClick={() => {
+    // 백엔드 스프링 OAuth 엔드포인트 URL로 이동!
+    window.location.href = "http://localhost:8080/oauth2/authorization/google";
+  }}
+>
+  구글로 시작하기
+</button>
           </form>
         </div>
 
