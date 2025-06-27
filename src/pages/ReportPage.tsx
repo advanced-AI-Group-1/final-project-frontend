@@ -103,9 +103,12 @@ const ReportPage: React.FC = () => {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['reportData', companyData?.company_name],
+    queryKey: ['reportData', companyData?.financial_statements?.financial_data?.corp_name],
     queryFn: () =>
-      fetchReportData(companyData?.company_name, companyData?.financial_statements?.financial_data),
+      fetchReportData(
+        companyData?.financial_statements?.financial_data?.corp_name,
+        companyData?.financial_statements?.financial_data
+      ),
     enabled: !!companyData && !initialData, // 초기 데이터가 없고 회사 데이터가 있을 때만 실행
     initialData: initialData, // 초기 데이터가 있으면 사용
   });
@@ -681,7 +684,7 @@ const ReportPage: React.FC = () => {
               </div>
               <div
                 className='report-prose'
-                dangerouslySetInnerHTML={{ __html: renderMarkdown(report_data.summary_content) }}
+                dangerouslySetInnerHTML={{ __html: report_data.summary_content }}
               />
             </div>
 
@@ -718,23 +721,10 @@ const ReportPage: React.FC = () => {
                   </div>
                   <div
                     className='report-prose'
-                    dangerouslySetInnerHTML={{ __html: renderMarkdown(section.content) }}
+                    dangerouslySetInnerHTML={{ __html: section.content }}
                   />
                 </div>
               ))}
-
-            {/* 상세 내용 */}
-            {/*{report_data.detailed_content && (*/}
-            {/*  <div className='report-section'>*/}
-            {/*    <div className='report-section-header'>*/}
-            {/*      <h2 className='report-section-title'>상세 보고서</h2>*/}
-            {/*    </div>*/}
-            {/*    <div*/}
-            {/*      className='report-prose'*/}
-            {/*      dangerouslySetInnerHTML={{ __html: renderMarkdown(report_data.detailed_content) }}*/}
-            {/*    />*/}
-            {/*  </div>*/}
-            {/*)}*/}
 
             <div className='report-date'>
               생성일:{' '}
@@ -801,7 +791,7 @@ const ReportPage: React.FC = () => {
             </div>
             <div
               className='report-prose'
-              dangerouslySetInnerHTML={{ __html: renderMarkdown(report_data.summary_content) }}
+              dangerouslySetInnerHTML={{ __html: report_data.summary_content }}
             />
           </div>
 
@@ -838,30 +828,18 @@ const ReportPage: React.FC = () => {
                 </div>
                 <div
                   className='report-prose'
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(section.content) }}
+                  dangerouslySetInnerHTML={{ __html: section.content }}
                 />
               </div>
             ))}
 
-          {/* 상세 내용 */}
-          {/*{report_data.detailed_content && (*/}
-          {/*  <div className='report-section'>*/}
-          {/*    <div className='report-section-header'>*/}
-          {/*      <h2 className='report-section-title'>상세 보고서</h2>*/}
-          {/*    </div>*/}
-          {/*    <div*/}
-          {/*      className='report-prose'*/}
-          {/*      dangerouslySetInnerHTML={{ __html: renderMarkdown(report_data.detailed_content) }}*/}
-          {/*    />*/}
-          {/*  </div>*/}
-          {/*)}*/}
-
-          <div className='report-date'>
-            생성일:{' '}
-            {report_data.generation_date ||
-              (reportData.json.generated_at
-                ? formatDate(reportData.json.generated_at)
-                : '날짜 정보 없음')}
+            <div className='report-date'>
+              생성일:{' '}
+              {report_data.generation_date ||
+                (reportData.json.generated_at
+                  ? formatDate(reportData.json.generated_at)
+                  : '날짜 정보 없음')}
+            </div>
           </div>
         </div>
       </div>

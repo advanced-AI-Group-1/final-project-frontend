@@ -114,9 +114,12 @@ const NewReportPage: React.FC = () => {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['reportData', companyData?.company_name],
+    queryKey: ['reportData', companyData?.financial_statements?.financial_data?.corp_name],
     queryFn: () =>
-      fetchReportData(companyData?.company_name, companyData?.financial_statements?.financial_data),
+      fetchReportData(
+        companyData?.financial_statements?.financial_data?.corp_name,
+        companyData?.financial_statements?.financial_data
+      ),
     enabled: !!companyData && !initialData, // 초기 데이터가 없고 회사 데이터가 있을 때만 실행
     initialData: initialData, // 초기 데이터가 있으면 사용
   });
@@ -636,14 +639,11 @@ const NewReportPage: React.FC = () => {
               if (!reportData) {
                 return [];
               }
-
               if ('json' in reportData && reportData.json) {
                 return reportData.json.sections || [];
               }
-
               return reportData.sections || [];
             })();
-
             return sections.map((section: any, index: number) => (
               <div key={index} className='mb-8'>
                 <h3 className='text-xl font-bold mb-4 text-gray-800 border-b-2 border-gray-200 pb-2'>
@@ -654,9 +654,10 @@ const NewReportPage: React.FC = () => {
                     <p className='text-base font-medium text-blue-800'>{section.description}</p>
                   </div>
                 )}
-                <div className='text-base leading-relaxed text-gray-700 whitespace-pre-line'>
-                  {section.content}
-                </div>
+                <div
+                  className='text-base leading-relaxed text-gray-700'
+                  dangerouslySetInnerHTML={{ __html: section.content }}
+                />
               </div>
             ));
           })()}

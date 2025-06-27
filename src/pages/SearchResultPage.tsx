@@ -23,14 +23,12 @@ const SearchResultPage: React.FC = () => {
   const [input, setInput] = useState('');
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
-
-   // ✅ 로그인 안 한 경우 리디렉션
-  useEffect(() => {
-    if (!isLoggedIn) {
-      navigate('/login-required');
-    }
-  }, [isLoggedIn, navigate]);
-  
+  // ✅ 로그인 안 한 경우 리디렉션
+  // useEffect(() => {
+  //   if (!isLoggedIn) {
+  //     navigate('/login-required');
+  //   }
+  // }, [isLoggedIn, navigate]);
 
   // 🔍 URL에서 keyword 추출
   const queryParams = new URLSearchParams(location.search);
