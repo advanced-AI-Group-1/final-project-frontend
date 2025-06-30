@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { dummyUsers } from '@/shared/data/dummyUsers';
 
+
 const LoginRegisterContainer: React.FC = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [emailInput, setEmailInput] = useState('');
