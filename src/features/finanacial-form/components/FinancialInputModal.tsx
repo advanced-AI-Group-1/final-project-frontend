@@ -41,7 +41,7 @@ const FinancialInputModal: React.FC<Props> = ({ isOpen, onClose }) => {
   };
 
   // ✅ useMutation 훅 연결
-  const { mutate, isLoading } = useFinancialMutation();
+  const { mutate, isPending } = useFinancialMutation();
 
   // ✅ 확인 버튼 눌렀을 때 실행될 함수
   const handleSubmit = () => {
@@ -112,12 +112,12 @@ const FinancialInputModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </button>
           <button
             onClick={handleSubmit}
-            disabled={isLoading}
+            disabled={isPending}
             className={`px-5 py-2 rounded-md ${
-              isLoading ? 'bg-blue-300' : 'bg-blue-600 hover:bg-blue-700'
+              isPending ? 'bg-blue-300' : 'bg-blue-600 hover:bg-blue-700'
             } text-white font-semibold shadow-sm transition`}
           >
-            {isLoading ? '분석 중...' : '확인'}
+            {isPending ? '분석 중...' : '확인'}
           </button>
         </div>
       </div>
