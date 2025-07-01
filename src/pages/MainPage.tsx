@@ -109,7 +109,7 @@ const MainPage: React.FC = () => {
             style={{
               color: '#010440',
               fontWeight: 'bold',
-              fontSize: '52px'
+              fontSize: '60px'
             }}
           >
             SheetAI
