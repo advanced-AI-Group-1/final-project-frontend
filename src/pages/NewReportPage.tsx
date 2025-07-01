@@ -1,13 +1,12 @@
 import React, { useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
-import { creditRatingAtom, financialDataAtom } from '@/shared/store/atoms.ts';
+import { creditRatingAtom } from '@/shared/store/atoms.ts';
 
 import Header from '@/shared/components/Header';
 import type { ReportData } from '@/features/report-generation/types/ReportTypes.ts';
 import {
   useCreditRating,
-  useFinancialMetrics,
   useReportChartData,
   useReportData,
 } from '@/features/report-generation/hooks/useReportData.ts';
@@ -19,6 +18,7 @@ import ReportSections from '@/features/report-generation/components/ReportSectio
 import CreditRatingSection from '@/features/report-generation/components/CreditRatingSection.tsx';
 import ReportSummaryCard from '@/features/report-generation/components/ReportSummaryCard.tsx';
 import { ReportHeader } from '@/features/report-generation/components/ReportHeader.tsx';
+import NewsSection from '@/features/report-generation/components/NewsSection.tsx';
 
 const NewReportPage: React.FC = () => {
   const navigate = useNavigate();
@@ -35,15 +35,15 @@ const NewReportPage: React.FC = () => {
   console.log('NewReportPage - initialData:', initialData);
 
   // 보고서 데이터가 이미 있는 경우 바로 사용
-  const hasReportData = !!initialData;
+  // const hasReportData = !!initialData;
 
   // Atom data
-  const [storedFinancialData] = useAtom(financialDataAtom);
+  // const [storedFinancialData] = useAtom(financialDataAtom);
   const [storedCreditRating] = useAtom(creditRatingAtom);
 
   // Data fetching and processing
   const { data: reportData, isLoading, error } = useReportData(companyData, initialData);
-  
+
   // 디버깅을 위한 로그 추가
   console.log('NewReportPage - reportData:', reportData);
   console.log('NewReportPage - isLoading:', isLoading);
@@ -52,7 +52,7 @@ const NewReportPage: React.FC = () => {
   // 데이터가 없는 경우 초기 데이터를 직접 사용
   const finalReportData = reportData || initialData;
 
-  const financialMetrics = useFinancialMetrics(finalReportData);
+  // const financialMetrics = useFinancialMetrics(finalReportData);
   const creditRating = useCreditRating(finalReportData, storedCreditRating);
   const ratingInfo = CreditRatingUtils.getRatingInfo(creditRating);
   const chartData = useReportChartData(creditRating);
@@ -61,14 +61,17 @@ const NewReportPage: React.FC = () => {
   const companyName = ReportDataExtractor.getCompanyName(finalReportData);
   const subtitle = ReportDataExtractor.getSubtitle(finalReportData);
   const generationDate = ReportDataExtractor.getGenerationDate(finalReportData);
-  const industryInfo = ReportDataExtractor.getIndustryInfo(finalReportData);
+  // const industryInfo = ReportDataExtractor.getIndustryInfo(finalReportData);
   const sections = ReportDataExtractor.getSections(finalReportData);
-  
+  const newsItems = ReportDataExtractor.getNewsData(finalReportData);
+
   // 새로운 구조화된 요약 카드 데이터 추출
-  const summaryCardData = finalReportData?.json?.summary_card_structured || finalReportData?.summary_card_structured;
+  const summaryCardData =
+    finalReportData?.json?.summary_card_structured || finalReportData?.summary_card_structured;
 
   // 디버깅을 위한 로그 추가
   console.log('NewReportPage - summaryCardData:', summaryCardData);
+  console.log('NewReportPage - newsItems:', newsItems);
 
   // Event handlers
   const handleBack = () => navigate(-1);
@@ -102,7 +105,7 @@ const NewReportPage: React.FC = () => {
     <div>
       {/* Header */}
       <div className='no-print header-wrapper'>
-        <Header onBack={handleBack} className='no-print header-container' />
+        <Header onBack={handleBack} />
       </div>
       {/* Controls */}
       <div className='no-print flex mx-auto justify-end py-5 max-w-[210mm]'>
@@ -167,7 +170,28 @@ const NewReportPage: React.FC = () => {
             chartData={chartData}
           />
 
-          <ReportSections sections={sections} />
+          {/* 기업 개요 섹션 */}
+          {sections.length > 0 && sections[0] && (
+            <div className='mb-8 page-break'>
+              <h3 className='text-xl font-bold mb-4 text-gray-800 border-b-2 border-gray-200 pb-2'>
+                {sections[0].title || '기업 개요'}
+              </h3>
+              {sections[0].description && (
+                <div className='bg-blue-50 p-4 rounded-lg mb-4'>
+                  <p className='text-base font-medium text-blue-800'>{sections[0].description}</p>
+                </div>
+              )}
+              <div className='text-base leading-relaxed text-gray-700 whitespace-pre-line'>
+                {sections[0].content}
+              </div>
+            </div>
+          )}
+
+          {/* 관련 뉴스 섹션 */}
+          <NewsSection newsItems={newsItems} />
+
+          {/* 나머지 섹션들 (기업 개요 제외) */}
+          {sections.length > 1 && <ReportSections sections={sections.slice(1)} />}
 
           <ReportFooter />
         </div>

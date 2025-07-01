@@ -36,6 +36,21 @@
   .font-pretendard {
     font-family: 'Pretendard', sans-serif;
   }
+  
+  /* 일반 화면에서는 숨기고 인쇄 시에만 표시 */
+  .print-only {
+    display: none;
+  }
+  
+  @media print {
+    .print-only {
+      display: block;
+    }
+    
+    .no-print {
+      display: none;
+    }
+  }
 }
 
 @layer components {

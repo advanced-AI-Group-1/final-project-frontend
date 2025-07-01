@@ -99,9 +99,50 @@ const ReportSummaryCard: React.FC<SummaryCardProps> = ({
 
   // 평가에 따른 색상 결정
   const getColorByEvaluation = (evaluationText: string) => {
-    if (evaluationText.includes('양호') || evaluationText.includes('우수')) return 'text-emerald-600';
-    if (evaluationText.includes('낮음') || evaluationText.includes('높은') || evaluationText.includes('주의')) return 'text-red-500';
+    if (evaluationText.includes('양호') || evaluationText.includes('우수')) {
+      return 'text-emerald-600';
+    }
+    if (
+      evaluationText.includes('낮음') ||
+      evaluationText.includes('높은') ||
+      evaluationText.includes('주의')
+    ) {
+      return 'text-red-500';
+    }
     return 'text-orange-600'; // 보통, 중간 등
+  };
+
+  // color_grade에 따른 색상 결정 (1-5 숫자 기준)
+  const getColorByGrade = (colorGrade: string | undefined): string => {
+    if (!colorGrade) {
+      return '';
+    }
+
+    // 문자열을 숫자로 변환
+    const grade = parseInt(colorGrade);
+
+    switch (grade) {
+      case 5: // 최상
+        return 'text-blue-600'; // 파란색
+      case 4: // 상
+        return 'text-emerald-600'; // 파란색
+      case 3: // 중
+        return 'text-yellow-500'; // 노란색
+      case 2: // 하
+        return 'text-orange-600'; // 주황색
+      case 1: // 최하
+        return 'text-red-500'; // 빨간색
+      default:
+        return ''; // 기본값 (평가 텍스트 기반 색상 사용)
+    }
+  };
+
+  // 색상 결정 (color_grade가 있으면 우선 사용, 없으면 평가 텍스트 기반)
+  const getMetricColor = (metric: { evaluation: string; color_grade?: string }) => {
+    if (metric.color_grade) {
+      return getColorByGrade(metric.color_grade);
+    }
+    return getColorByEvaluation(metric.evaluation);
   };
 
   // summaryCardData에서 강점과 약점 추출
@@ -147,15 +188,11 @@ const ReportSummaryCard: React.FC<SummaryCardProps> = ({
             <div className='text-sm text-gray-600'>
               <span className='font-semibold text-gray-800'>주요 강점 키워드: </span>
             </div>
-            <div className='text-sm text-gray-700 break-words mb-1 font-light'>
-              {strengthsText}
-            </div>
+            <div className='text-sm text-gray-700 break-words mb-1 font-light'>{strengthsText}</div>
             <div className='text-sm text-gray-600'>
               <span className='font-semibold text-gray-800'>주요 약점 키워드: </span>
             </div>
-            <div className='text-sm text-gray-700 break-words font-light'>
-              {weaknessesText}
-            </div>
+            <div className='text-sm text-gray-700 break-words font-light'>{weaknessesText}</div>
           </div>
         </div>
       </div>
@@ -164,7 +201,7 @@ const ReportSummaryCard: React.FC<SummaryCardProps> = ({
         <div className='grid grid-cols-4 gap-4 text-center'>
           <div>
             <div
-              className={`text-2xl font-bold mb-1 ${getColorByEvaluation(summaryCardData.financial_metrics.roa.evaluation)}`}
+              className={`text-2xl font-bold mb-1 ${getMetricColor(summaryCardData.financial_metrics.roa)}`}
             >
               {summaryCardData.financial_metrics.roa.value}%
             </div>
@@ -174,7 +211,7 @@ const ReportSummaryCard: React.FC<SummaryCardProps> = ({
           </div>
           <div>
             <div
-              className={`text-2xl font-bold mb-1 ${getColorByEvaluation(summaryCardData.financial_metrics.roe.evaluation)}`}
+              className={`text-2xl font-bold mb-1 ${getMetricColor(summaryCardData.financial_metrics.roe)}`}
             >
               {summaryCardData.financial_metrics.roe.value}%
             </div>
@@ -184,7 +221,7 @@ const ReportSummaryCard: React.FC<SummaryCardProps> = ({
           </div>
           <div>
             <div
-              className={`text-2xl font-bold mb-1 ${getColorByEvaluation(summaryCardData.financial_metrics.debt_ratio.evaluation)}`}
+              className={`text-2xl font-bold mb-1 ${getMetricColor(summaryCardData.financial_metrics.debt_ratio)}`}
             >
               {summaryCardData.financial_metrics.debt_ratio.value}%
             </div>
@@ -194,7 +231,7 @@ const ReportSummaryCard: React.FC<SummaryCardProps> = ({
           </div>
           <div>
             <div
-              className={`text-2xl font-bold mb-1 ${getColorByEvaluation(summaryCardData.financial_metrics.operating_profit_margin.evaluation)}`}
+              className={`text-2xl font-bold mb-1 ${getMetricColor(summaryCardData.financial_metrics.operating_profit_margin)}`}
             >
               {summaryCardData.financial_metrics.operating_profit_margin.value}%
             </div>

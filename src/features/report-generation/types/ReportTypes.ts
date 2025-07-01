@@ -25,6 +25,7 @@ export interface ReportData {
     report_type: string;
     credit_rating?: string;
     summary_card_structured?: SummaryCardStructured;
+    news_data?: NewsItem[];
   };
   company_name?: string;
   report_data?: {
@@ -51,6 +52,7 @@ export interface ReportData {
   report_type?: string;
   credit_rating?: string;
   summary_card_structured?: SummaryCardStructured;
+  news_data?: NewsItem[];
 }
 
 export interface FinancialMetrics {
@@ -87,18 +89,22 @@ export interface SummaryCardStructured {
     roa: {
       value: number;
       evaluation: string;
+      color_grade?: string;
     };
     roe: {
       value: number;
       evaluation: string;
+      color_grade?: string;
     };
     debt_ratio: {
       value: number;
       evaluation: string;
+      color_grade?: string;
     };
     operating_profit_margin: {
       value: number;
       evaluation: string;
+      color_grade?: string;
     };
   };
   credit_rating_trend: {
@@ -108,4 +114,13 @@ export interface SummaryCardStructured {
   financial_stability: string;
   business_risk: string;
   industry_outlook: string;
+}
+
+export interface NewsItem {
+  title: string;
+  url: string;
+  image_url?: string;
+  source?: string;
+  published_date?: string;
+  summary?: string;
 }

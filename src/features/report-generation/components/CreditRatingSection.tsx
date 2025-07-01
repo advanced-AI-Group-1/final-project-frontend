@@ -21,7 +21,7 @@ const CreditRatingCenterText: React.FC<CreditRatingCenterTextProps> = ({
     {creditRating ? (
       <>
         <div
-          className='text-6xl font-bold mb-2 credit-rating-main'
+          className='text-5xl font-bold mb-2 credit-rating-main'
           style={{ color: ratingInfo.color }}
         >
           {creditRating}

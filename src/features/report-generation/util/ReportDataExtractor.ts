@@ -1,4 +1,4 @@
-import type { IndustryInfo, ReportData, SummaryCardStructured } from '@/features/report-generation/types/ReportTypes.ts';
+import type { IndustryInfo, ReportData, SummaryCardStructured, NewsItem } from '@/features/report-generation/types/ReportTypes.ts';
 
 export class ReportDataExtractor {
   static getCompanyName(reportData: ReportData | null): string {
@@ -122,9 +122,36 @@ export class ReportDataExtractor {
     return this.extractFromReportData(reportData);
   }
 
-  private static getStructuredData(reportData: ReportData): SummaryCardStructured | null {
-    // json 내부 또는 최상위에서 summary_card_structured 찾기
-    return reportData?.json?.summary_card_structured || reportData?.summary_card_structured || null;
+  static getStructuredData(reportData: ReportData | null): SummaryCardStructured | null {
+    if (!reportData) {
+      return null;
+    }
+
+    if ('summary_card_structured' in reportData && reportData.summary_card_structured) {
+      return reportData.summary_card_structured;
+    }
+
+    if ('json' in reportData && reportData.json?.summary_card_structured) {
+      return reportData.json.summary_card_structured;
+    }
+
+    return null;
+  }
+
+  static getNewsData(reportData: ReportData | null): NewsItem[] {
+    if (!reportData) {
+      return [];
+    }
+    
+    if ('news_data' in reportData && reportData.news_data) {
+      return reportData.news_data;
+    }
+    
+    if ('json' in reportData && reportData.json?.news_data) {
+      return reportData.json.news_data;
+    }
+    
+    return [];
   }
 
   private static extractFromJson(json: ReportData['json']): string | null {

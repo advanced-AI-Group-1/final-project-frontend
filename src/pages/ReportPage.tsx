@@ -2,13 +2,13 @@
 import React, { useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Cell, Pie, PieChart } from 'recharts';
-import api from '@/shared/config/axios';
 import { useAtom } from 'jotai';
-import { creditRatingAtom, financialDataAtom } from '@/shared/store/atoms.ts';
+import { creditRatingAtom } from '@/shared/store/atoms.ts';
 import Header from '@/shared/components/Header';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import api from '@/shared/config/axios.ts';
+import { Cell, PieChart } from 'recharts';
 
 // 리포트 데이터 인터페이스 정의
 interface ReportData {
@@ -98,7 +98,7 @@ const ReportPage: React.FC = () => {
   const companyData = location.state?.companyData;
 
   // jotai atom에서 데이터 가져오기
-  const [storedFinancialData] = useAtom(financialDataAtom);
+  // const [storedFinancialData] = useAtom(financialDataAtom);
   const [storedCreditRating] = useAtom(creditRatingAtom);
 
   // React Query를 사용하여 데이터 가져오기 (초기 데이터가 없는 경우)
@@ -241,6 +241,88 @@ const ReportPage: React.FC = () => {
     }
 
     return metrics;
+  }, [reportData]);
+
+  // color_grade에 따른 색상 매핑 함수 추가
+  const getColorByGrade = (colorGrade: string | undefined): string => {
+    switch (colorGrade) {
+      case 'excellent':
+        return '#22c55e'; // 녹색
+      case 'good':
+        return '#3b82f6'; // 파란색
+      case 'average':
+        return '#f59e0b'; // 주황색
+      case 'poor':
+        return '#ef4444'; // 빨간색
+      default:
+        return '#6b7280'; // 회색 (기본값)
+    }
+  };
+
+  // 재무 지표별 color_grade 추출 함수
+  const financialMetricsColorGrades = useMemo(() => {
+    if (!reportData) {
+      return {
+        roa: undefined,
+        roe: undefined,
+        debtRatio: undefined,
+        operatingProfitMargin: undefined,
+      };
+    }
+
+    try {
+      // 1. json 속성이 있는 경우
+      if ('json' in reportData && reportData.json) {
+        const metrics = reportData.json.report_data?.financial_metrics;
+        return {
+          roa: metrics?.roa?.color_grade,
+          roe: metrics?.roe?.color_grade,
+          debtRatio: metrics?.debt_ratio?.color_grade,
+          operatingProfitMargin: metrics?.operating_profit_margin?.color_grade,
+        };
+      }
+      // 2. json 속성이 없는 경우
+      else if (reportData.report_data) {
+        const metrics = reportData.report_data.financial_metrics;
+        return {
+          roa: metrics?.roa?.color_grade,
+          roe: metrics?.roe?.color_grade,
+          debtRatio: metrics?.debt_ratio?.color_grade,
+          operatingProfitMargin: metrics?.operating_profit_margin?.color_grade,
+        };
+      }
+    } catch (error) {
+      console.error('재무 지표 색상 등급 추출 중 오류 발생:', error);
+    }
+
+    return {
+      roa: undefined,
+      roe: undefined,
+      debtRatio: undefined,
+      operatingProfitMargin: undefined,
+    };
+  }, [reportData]);
+
+  // 뉴스 데이터 추출 함수
+  const newsItems = useMemo(() => {
+    if (!reportData) {
+      return [];
+    }
+
+    try {
+      // 1. json 속성이 있는 경우
+      if ('json' in reportData && reportData.json) {
+        return reportData.json.news_data || [];
+      }
+      // 2. json 속성이 없는 경우
+      else if (reportData.report_data) {
+        return reportData.report_data.news_data || [];
+      }
+    } catch (error) {
+      console.error('뉴스 데이터 추출 중 오류 발생:', error);
+    }
+
+    return [];
   }, [reportData]);
 
   // 신용등급에 따른 색상과 진행률 결정
@@ -475,7 +557,7 @@ const ReportPage: React.FC = () => {
       element.querySelector('.bg-blue-50'), // 요약 카드
       element.querySelector('.avoid-break'), // 신용등급 차트
       ...Array.from(element.querySelectorAll('.mb-8')), // 분석 섹션들
-    ].filter(Boolean);
+    ].filter((section): section is Element => section !== null);
 
     // 각 섹션의 상대적 위치 계산
     const sectionPositions: { element: Element; top: number; height: number }[] = [];
@@ -635,7 +717,7 @@ const ReportPage: React.FC = () => {
 
   // 신용등급 정보
   const ratingInfo = getRatingInfo(creditRating);
-  const industryInfo = getIndustryInfo();
+  // const industryInfo = getIndustryInfo();
 
   // Recharts용 데이터 (신용등급이 없는 경우 처리)
   const chartData = creditRating
@@ -766,6 +848,7 @@ const ReportPage: React.FC = () => {
                 <div>
                   <div
                     className={`text-2xl font-bold ${financialMetrics.roa > 5 ? 'text-emerald-600' : 'text-red-500'} mb-1`}
+                    style={{ color: getColorByGrade(financialMetricsColorGrades.roa) }}
                   >
                     {financialMetrics.roa}%
                   </div>
@@ -776,6 +859,7 @@ const ReportPage: React.FC = () => {
                 <div>
                   <div
                     className={`text-2xl font-bold ${financialMetrics.roe > 8 ? 'text-emerald-600' : 'text-red-500'} mb-1`}
+                    style={{ color: getColorByGrade(financialMetricsColorGrades.roe) }}
                   >
                     {financialMetrics.roe}%
                   </div>
@@ -786,6 +870,7 @@ const ReportPage: React.FC = () => {
                 <div>
                   <div
                     className={`text-2xl font-bold ${financialMetrics.debtRatio < 200 ? 'text-orange-600' : 'text-red-500'} mb-1`}
+                    style={{ color: getColorByGrade(financialMetricsColorGrades.debtRatio) }}
                   >
                     {financialMetrics.debtRatio}%
                   </div>
@@ -796,6 +881,9 @@ const ReportPage: React.FC = () => {
                 <div>
                   <div
                     className={`text-2xl font-bold ${financialMetrics.operatingProfitMargin > 10 ? 'text-emerald-600' : 'text-red-500'} mb-1`}
+                    style={{
+                      color: getColorByGrade(financialMetricsColorGrades.operatingProfitMargin),
+                    }}
                   >
                     {financialMetrics.operatingProfitMargin}%
                   </div>
@@ -813,7 +901,7 @@ const ReportPage: React.FC = () => {
             <div className='flex items-center justify-center'>
               <div className='relative'>
                 <PieChart width={280} height={280}>
-                  <Pie
+                  <PieChart
                     data={chartData}
                     dataKey='value'
                     nameKey='name'
@@ -827,7 +915,7 @@ const ReportPage: React.FC = () => {
                     {chartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
-                  </Pie>
+                  </PieChart>
                 </PieChart>
                 {/* 중앙 텍스트 */}
                 <div className='absolute inset-0 flex flex-col items-center justify-center credit-rating-center'>
@@ -911,6 +999,56 @@ const ReportPage: React.FC = () => {
               </div>
             ));
           })()}
+
+          {/* 관련 뉴스 섹션 */}
+          {newsItems.length > 0 && (
+            <div className='mb-8 page-break'>
+              <h3 className='text-xl font-bold mb-4 text-gray-800 border-b-2 border-gray-200 pb-2'>
+                관련 뉴스
+              </h3>
+              <div className='grid grid-cols-1 gap-4'>
+                {newsItems.map((news, index) => (
+                  <div
+                    key={index}
+                    className='bg-white rounded-lg shadow p-4 border border-gray-200'
+                  >
+                    <div className='flex'>
+                      {news.image_url && (
+                        <div className='flex-shrink-0 mr-4'>
+                          <img
+                            src={news.image_url}
+                            alt={news.title}
+                            className='w-24 h-24 object-cover rounded'
+                            onError={e => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+                      <div className='flex-grow'>
+                        <h4 className='text-lg font-semibold mb-1'>
+                          <a
+                            href={news.url}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                            className='text-blue-600 hover:underline'
+                          >
+                            {news.title}
+                          </a>
+                        </h4>
+                        {news.source && news.published_date && (
+                          <div className='text-xs text-gray-500 mb-2'>
+                            {news.source} · {news.published_date}
+                          </div>
+                        )}
+                        {news.summary && <p className='text-sm text-gray-700'>{news.summary}</p>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* 푸터 */}
           <div className='footer-container text-center mt-16 pt-8 border-t-2 border-gray-200'>
