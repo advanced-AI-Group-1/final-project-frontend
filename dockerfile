@@ -6,13 +6,13 @@ WORKDIR /app
 # Install pnpm globally
 RUN npm install -g pnpm
 
-# Copy dependency files
+# Copy only dependency files first (for layer caching)
 COPY package.json pnpm-lock.yaml ./
 
 # Install dependencies
 RUN pnpm install
 
-# Copy rest of the app
+# Copy the rest of the app (excluding node_modules via .dockerignore)
 COPY . .
 
 # Build the app
