@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAtom } from 'jotai';
 import { creditRatingAtom } from '@/shared/store/atoms.ts';
+import { devLog } from '@/shared/util/logger';
 import Header from '@/shared/components/Header';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -67,7 +68,7 @@ interface ReportData {
 // 보고서 데이터 가져오는 함수
 const fetchReportData = async (companyName: string, financialData: any) => {
   try {
-    console.log('API 요청 데이터:', {
+    devLog('API 요청 데이터:', {
       company_name: companyName,
       financial_data: financialData,
       report_type: 'agent_based',
@@ -77,10 +78,10 @@ const fetchReportData = async (companyName: string, financialData: any) => {
       financial_data: financialData,
       report_type: 'agent_based',
     });
-    console.log('API 응답 데이터:', response.data);
+    devLog('API 응답 데이터:', response.data);
     return response.data;
   } catch (error) {
-    console.error('API 요청 오류:', error);
+    devLog('API 요청 오류:', error);
     throw error;
   }
 };
@@ -122,7 +123,7 @@ const ReportPage: React.FC = () => {
 
     // 1. jotai atom에 저장된 신용등급이 있으면 사용
     if (storedCreditRating) {
-      console.log('jotai atom에서 신용등급 가져옴:', storedCreditRating);
+      devLog('jotai atom에서 신용등급 가져옴:', storedCreditRating);
       return storedCreditRating;
     }
 
@@ -130,7 +131,7 @@ const ReportPage: React.FC = () => {
     if ('json' in reportData && reportData.json) {
       // API에서 직접 제공하는 신용등급이 있으면 사용
       if (reportData.json.credit_rating) {
-        console.log('API에서 제공된 신용등급 (json):', reportData.json.credit_rating);
+        devLog('API에서 제공된 신용등급 (json):', reportData.json.credit_rating);
         // 객체 형태인 경우 credit_rating 속성 추출
         if (typeof reportData.json.credit_rating === 'object') {
           return reportData.json.credit_rating.credit_rating || null;
@@ -139,14 +140,14 @@ const ReportPage: React.FC = () => {
       }
 
       // 신용등급 정보가 없는 경우
-      console.warn('신용등급 정보를 찾을 수 없습니다.');
+      devLog('신용등급 정보를 찾을 수 없습니다.');
       return null;
     }
     // 3. json 속성이 없는 경우
     else {
       // API에서 직접 제공하는 신용등급이 있으면 사용
       if (reportData.credit_rating) {
-        console.log('API에서 제공된 신용등급:', reportData.credit_rating);
+        devLog('API에서 제공된 신용등급:', reportData.credit_rating);
         // 객체 형태인 경우 credit_rating 속성 추출
         if (typeof reportData.credit_rating === 'object') {
           return reportData.credit_rating.credit_rating || null;
@@ -155,7 +156,7 @@ const ReportPage: React.FC = () => {
       }
 
       // 신용등급 정보가 없는 경우
-      console.warn('신용등급 정보를 찾을 수 없습니다.');
+      devLog('신용등급 정보를 찾을 수 없습니다.');
       return null;
     }
   }, [reportData, storedCreditRating]);
@@ -237,7 +238,7 @@ const ReportPage: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('재무 지표 추출 중 오류:', error);
+      devLog('재무 지표 추출 중 오류:', error);
     }
 
     return metrics;
@@ -292,7 +293,7 @@ const ReportPage: React.FC = () => {
         };
       }
     } catch (error) {
-      console.error('재무 지표 색상 등급 추출 중 오류 발생:', error);
+      devLog('재무 지표 색상 등급 추출 중 오류 발생:', error);
     }
 
     return {
@@ -319,7 +320,7 @@ const ReportPage: React.FC = () => {
         return reportData.report_data.news_data || [];
       }
     } catch (error) {
-      console.error('뉴스 데이터 추출 중 오류 발생:', error);
+      devLog('뉴스 데이터 추출 중 오류 발생:', error);
     }
 
     return [];
@@ -424,7 +425,7 @@ const ReportPage: React.FC = () => {
     fileName: string = 'report.pdf'
   ) => {
     if (!elementToConvert) {
-      console.error('PDF 생성을 위한 요소를 찾을 수 없습니다.');
+      devLog('PDF 생성을 위한 요소를 찾을 수 없습니다.');
       return;
     }
 
@@ -432,7 +433,7 @@ const ReportPage: React.FC = () => {
     setIsPdfGenerating(true);
 
     try {
-      console.log('스마트 PDF 생성 중...');
+      devLog('스마트 PDF 생성 중...');
 
       // 1. PDF 호환 모드 활성화
       applyPdfCompatibleStyles(elementToConvert);
@@ -526,9 +527,9 @@ const ReportPage: React.FC = () => {
       }
 
       pdf.save(fileName);
-      console.log('스마트 PDF 생성 완료');
+      devLog('스마트 PDF 생성 완료');
     } catch (error) {
-      console.error('스마트 PDF 생성 중 오류:', error);
+      devLog('스마트 PDF 생성 중 오류:', error);
       alert('PDF 생성 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
       if (elementToConvert) {

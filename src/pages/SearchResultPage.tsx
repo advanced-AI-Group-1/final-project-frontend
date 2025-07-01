@@ -4,6 +4,7 @@ import Header from '@/shared/components/Header';
 import FinancialInputModal from '@/features/finanacial-form/components/FinancialInputModal.tsx';
 import { useAtom } from 'jotai';
 import { companyInfoAtom, creditRatingAtom, financialDataAtom } from '@/shared/store/atoms.ts';
+import { devLog } from '@/shared/util/logger';
 
 // ✅ 정확한 위치에서 useQueryResult 불러오기
 import { useQueryResult } from '@/features/mainpage/service/queryService';
@@ -106,12 +107,12 @@ const SearchResultPage: React.FC = () => {
     // 보고서 생성 API 호출
     reportMutation.mutate(reportRequest, {
       onSuccess: data => {
-        console.log('보고서 생성 성공:', data);
+        devLog('보고서 생성 성공:', data);
         setIsGeneratingReport(false);
         
         // 데이터가 유효한지 확인
         if (!data) {
-          console.error('보고서 데이터가 없습니다.');
+          devLog('보고서 데이터가 없습니다.');
           alert('보고서 데이터를 받지 못했습니다.');
           return;
         }
@@ -129,13 +130,13 @@ const SearchResultPage: React.FC = () => {
             } 
           });
         } catch (error) {
-          console.error('페이지 이동 오류:', error);
+          devLog('페이지 이동 오류:', error);
           alert('페이지 이동 중 오류가 발생했습니다.');
         }
       },
       onError: error => {
         setIsGeneratingReport(false);
-        console.error('보고서 생성 오류:', error);
+        devLog('보고서 생성 오류:', error);
         alert('보고서 생성 중 오류가 발생했습니다.');
       },
     });

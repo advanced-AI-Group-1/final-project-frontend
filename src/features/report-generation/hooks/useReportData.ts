@@ -9,10 +9,11 @@ import { ReportApiService } from '@/features/report-generation/service/ReportApi
 import FinancialMetricsExtractor from '@/features/report-generation/util/FinancialMetricsExtractor.ts';
 import CreditRatingUtils from '@/features/report-generation/util/CreditRatingUtils.ts';
 import { ReportDataExtractor } from '@/features/report-generation/util/ReportDataExtractor.ts';
+import { devLog } from '@/shared/util/logger';
 
 export const useReportData = (companyData: any, initialData: ReportData | null) => {
-  console.log('useReportData - companyData:', companyData);
-  console.log('useReportData - initialData:', initialData);
+  devLog('useReportData - companyData:', companyData);
+  devLog('useReportData - initialData:', initialData);
 
   return useQuery({
     queryKey: ['reportData', companyData?.company_name],

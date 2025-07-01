@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { creditRatingAtom } from '@/shared/store/atoms.ts';
+import { devLog } from '@/shared/util/logger';
 
 import Header from '@/shared/components/Header';
 import type { ReportData } from '@/features/report-generation/types/ReportTypes.ts';
@@ -31,8 +32,8 @@ const NewReportPage: React.FC = () => {
   const companyData = location.state?.companyData;
 
   // 디버깅을 위한 로그 추가
-  console.log('NewReportPage - location.state:', location.state);
-  console.log('NewReportPage - initialData:', initialData);
+  devLog('NewReportPage - location.state:', location.state);
+  devLog('NewReportPage - initialData:', initialData);
 
   // 보고서 데이터가 이미 있는 경우 바로 사용
   // const hasReportData = !!initialData;
@@ -45,9 +46,9 @@ const NewReportPage: React.FC = () => {
   const { data: reportData, isLoading, error } = useReportData(companyData, initialData);
 
   // 디버깅을 위한 로그 추가
-  console.log('NewReportPage - reportData:', reportData);
-  console.log('NewReportPage - isLoading:', isLoading);
-  console.log('NewReportPage - error:', error);
+  devLog('NewReportPage - reportData:', reportData);
+  devLog('NewReportPage - isLoading:', isLoading);
+  devLog('NewReportPage - error:', error);
 
   // 데이터가 없는 경우 초기 데이터를 직접 사용
   const finalReportData = reportData || initialData;
@@ -70,8 +71,8 @@ const NewReportPage: React.FC = () => {
     finalReportData?.json?.summary_card_structured || finalReportData?.summary_card_structured;
 
   // 디버깅을 위한 로그 추가
-  console.log('NewReportPage - summaryCardData:', summaryCardData);
-  console.log('NewReportPage - newsItems:', newsItems);
+  devLog('NewReportPage - summaryCardData:', summaryCardData);
+  devLog('NewReportPage - newsItems:', newsItems);
 
   // Event handlers
   const handleBack = () => navigate(-1);

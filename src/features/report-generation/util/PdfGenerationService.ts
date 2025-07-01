@@ -1,5 +1,6 @@
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { devLog, devError } from '@/shared/util/logger';
 
 export default class PdfGenerationService {
   static applyPdfCompatibleStyles(element: HTMLElement): void {
@@ -79,12 +80,12 @@ export default class PdfGenerationService {
     fileName: string = 'report.pdf'
   ): Promise<boolean> {
     if (!elementToConvert) {
-      console.error('PDF 생성을 위한 요소를 찾을 수 없습니다.');
+      devError('PDF 생성을 위한 요소를 찾을 수 없습니다.');
       return false;
     }
 
     try {
-      console.log('스마트 PDF 생성 중...');
+      devLog('스마트 PDF 생성 중...');
 
       // 1. PDF 호환 모드 활성화
       this.applyPdfCompatibleStyles(elementToConvert);
@@ -130,12 +131,12 @@ export default class PdfGenerationService {
           
           // 이미지 로딩 상태 확인
           const images = clonedDoc.querySelectorAll('img');
-          console.log(`PDF 생성: ${images.length}개의 이미지 발견`);
+          devLog(`PDF 생성: ${images.length}개의 이미지 발견`);
           images.forEach((img, index) => {
             if (!img.complete) {
-              console.log(`이미지 ${index + 1}가 아직 로드되지 않음: ${img.src}`);
+              devLog(`이미지 ${index + 1}가 아직 로드되지 않음: ${img.src}`);
             } else if (img.naturalWidth === 0) {
-              console.log(`이미지 ${index + 1} 로드 실패: ${img.src}`);
+              devLog(`이미지 ${index + 1} 로드 실패: ${img.src}`);
               // 이미지 로드 실패 시 대체 이미지 표시
               img.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItaW1hZ2UiPjxyZWN0IHg9IjMiIHk9IjMiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjIiIHJ5PSIyIj48L3JlY3Q+PGNpcmNsZSBjeD0iOC41IiBjeT0iOC41IiByPSIxLjUiPjwvY2lyY2xlPjxwb2x5bGluZSBwb2ludHM9IjIxIDE1IDE2IDEwIDUgMjEiPjwvcG9seWxpbmU+PC9zdmc+';
             }
@@ -155,8 +156,8 @@ export default class PdfGenerationService {
       let pageNumber = 0;
 
       // 디버깅: 페이지 나누기 지점 로깅
-      console.log('페이지 나누기 지점:', breakPoints);
-      console.log('전체 캔버스 높이:', fullCanvas.height);
+      devLog('페이지 나누기 지점:', breakPoints);
+      devLog('전체 캔버스 높이:', fullCanvas.height);
 
       for (let i = 0; i < breakPoints.length; i++) {
         const nextBreakPoint = breakPoints[i];
@@ -164,11 +165,11 @@ export default class PdfGenerationService {
 
         // 페이지 높이가 너무 작으면 건너뛰지 않고 최소 높이 보장
         if (pageHeight <= 5) {
-          console.log(`페이지 ${pageNumber + 1}의 높이가 너무 작음:`, pageHeight);
+          devLog(`페이지 ${pageNumber + 1}의 높이가 너무 작음:`, pageHeight);
           continue;
         }
 
-        console.log(`페이지 ${pageNumber + 1} 생성: ${currentY} ~ ${nextBreakPoint} (높이: ${pageHeight})`);
+        devLog(`페이지 ${pageNumber + 1} 생성: ${currentY} ~ ${nextBreakPoint} (높이: ${pageHeight})`);
 
         const pageCanvas = document.createElement('canvas');
         pageCanvas.width = fullCanvas.width;
@@ -207,7 +208,7 @@ export default class PdfGenerationService {
       // 마지막 페이지 추가 (남은 내용이 있는 경우)
       if (currentY < fullCanvas.height) {
         const remainingHeight = fullCanvas.height - currentY;
-        console.log(`마지막 페이지 추가: ${currentY} ~ ${fullCanvas.height} (높이: ${remainingHeight})`);
+        devLog(`마지막 페이지 추가: ${currentY} ~ ${fullCanvas.height} (높이: ${remainingHeight})`);
         
         if (remainingHeight > 5) {  // 최소 높이 확인
           const pageCanvas = document.createElement('canvas');
@@ -237,10 +238,10 @@ export default class PdfGenerationService {
       }
 
       pdf.save(fileName);
-      console.log('스마트 PDF 생성 완료');
+      devLog('스마트 PDF 생성 완료');
       return true;
     } catch (error) {
-      console.error('스마트 PDF 생성 중 오류:', error);
+      devError('스마트 PDF 생성 중 오류:', error);
       throw error;
     } finally {
       if (elementToConvert) {
@@ -257,8 +258,8 @@ export default class PdfGenerationService {
     const scale = 2;
     const maxPagePixels = maxPageHeight * scale * (element.scrollWidth / 180);
 
-    console.log('최대 페이지 픽셀 높이:', maxPagePixels);
-    console.log('전체 캔버스 높이:', totalCanvasHeight);
+    devLog('최대 페이지 픽셀 높이:', maxPagePixels);
+    devLog('전체 캔버스 높이:', totalCanvasHeight);
 
     // 섹션 요소들을 찾습니다
     const sections = Array.from(element.querySelectorAll('h1, h2, h3, .mb-8, .bg-blue-50, .avoid-break'))
@@ -285,7 +286,7 @@ export default class PdfGenerationService {
     // 위치에 따라 정렬
     sectionPositions.sort((a, b) => a.top - b.top);
     
-    console.log('섹션 수:', sectionPositions.length);
+    devLog('섹션 수:', sectionPositions.length);
     
     // 균등한 페이지 분할 계산
     const breakPoints: number[] = [];
@@ -342,7 +343,7 @@ export default class PdfGenerationService {
       breakPoints.push(totalCanvasHeight);
     }
     
-    console.log('계산된 페이지 나누기 지점:', breakPoints);
+    devLog('계산된 페이지 나누기 지점:', breakPoints);
     return breakPoints;
   }
 }
