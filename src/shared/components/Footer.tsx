@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
 interface FooterProps {
   variant?: 'transparent-black' | 'white';
@@ -7,6 +8,7 @@ interface FooterProps {
 
 const Footer: React.FC<FooterProps> = ({ variant = 'white' }) => {
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
 
   const handleWithdrawClick = () => {
     navigate('/withdraw');
@@ -23,23 +25,19 @@ const Footer: React.FC<FooterProps> = ({ variant = 'white' }) => {
       : 'text-gray-500';
 
   return (
-    <footer className={`w-full py-4 ${bgClass} text-xs ${textColor}`}>
-      <div className="max-w-screen-xl mx-auto flex flex-col md:flex-row items-center px-4">
-        {/* ✅ 왼쪽 : 문구 컨테이너 */}
-        <div className="w-full md:flex-1 text-center md:text-center">
-          <p>© 2025 SheetAI. All rights reserved.</p>
-        </div>
-
-        {/* ✅ 오른쪽 : 버튼 컨테이너 */}
-        <div className="w-full md:flex-1 text-center md:text-right mt-2 md:mt-0">
-          <button
-            onClick={handleWithdrawClick}
-            className={`${textColor} hover:text-red-500 transition-colors underline`}
-          >
-            회원 탈퇴
-          </button>
-        </div>
+    <footer className={`w-full relative py-4 ${bgClass} text-xs ${textColor}`}>
+      <div className="max-w-screen-xl mx-auto px-4 text-center">
+        <p>© 2025 SheetAI. All rights reserved.</p>
       </div>
+
+      {isLoggedIn && (
+        <button
+          onClick={handleWithdrawClick}
+          className={`absolute right-4 bottom-4 ${textColor} hover:text-red-500 transition-colors underline`}
+        >
+          회원 탈퇴
+        </button>
+      )}
     </footer>
   );
 };

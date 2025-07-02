@@ -34,10 +34,6 @@ const LoginRegisterContainer: React.FC = () => {
   //   },
   // ]);
 
-  useEffect(() => {
-    console.log('[더미 USER 데이터]', users);
-  }, [users]);
-
   // ✅ 더미 로그인 로직 - 주석처리
   // const handleLogin = (e: React.FormEvent) => {
   //   e.preventDefault();
@@ -58,31 +54,33 @@ const LoginRegisterContainer: React.FC = () => {
   // };
 
   // ✅ 백엔드 연동 로그인
-  const handleLogin = async (e: React.FormEvent) => {
+const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:8080/api/user/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: emailInput.trim(),
-          password: passwordInput,
-        }),
-      });
+        const response = await fetch('http://localhost:8080/api/user/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userId: emailInput.trim(),  // 변수명은 emailInput이지만 실제로는 userId를 보내고 있음
+                password: passwordInput,
+            }),
+        });
 
-      if (response.ok) {
-        login();
-        navigate('/');
-      } else {
-        alert('로그인 실패! 이메일/비밀번호를 확인해주세요.');
-      }
+        const data = await response.json();
+        if (response.ok) {
+            // 토큰 저장
+            localStorage.setItem('token', data.token);
+            login();  // 로그인 상태 업데이트
+            navigate('/');
+        } else {
+            alert(data.error || '로그인 실패! 아이디/비밀번호를 확인해주세요.');
+        }
     } catch (error) {
-      console.error('로그인 오류:', error);
-      alert('로그인 요청 중 오류 발생!');
+        console.error('로그인 오류:', error);
+        alert('로그인 요청 중 오류 발생!');
     }
-  };
-
+};
   // ✅ 백엔드 연동 회원가입
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
