@@ -8,7 +8,7 @@ import LoginRequiredPage from '@pages/LoginRequiredPage.tsx';
 
 import NewReportPage from '@pages/NewReportPage.tsx';
 import TestPdf from '@/tests/TestPdf.tsx';
-
+import WithdrawUser from '@pages/WithdrawUser.tsx';
 
 const PageRouter: React.FC = () => {
   return (
@@ -18,15 +18,14 @@ const PageRouter: React.FC = () => {
       <Route path="/search" element={<SearchResultPage />} />
       <Route path="/login" element={<LoginRegisterContainer />} />
       <Route path="/login-required" element={<LoginRequiredPage />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
 
-      <Route path='/' element={<MainPage />} />
-      {/* 여기에 routing 추가 */}
-      <Route path='/search' element={<SearchResultPage />} />
+      {/* ✅ 탈퇴 페이지 라우트 추가 */}
+      <Route path="/withdraw" element={<WithdrawUser />} />
+
       <Route path='/report' element={<NewReportPage />} />
       <Route path='/test-pdf' element={<TestPdf />} />
-      <Route path='*' element={<Navigate to='/' replace />} />
 
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };

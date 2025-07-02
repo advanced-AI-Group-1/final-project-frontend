@@ -12,7 +12,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // ✅ 페이지 새로고침 시에도 localStorage에 토큰이 있으면 로그인 상태 유지
+  // ✅ 새로고침해도 localStorage에 토큰 있으면 로그인 상태 유지
   useEffect(() => {
     const savedToken = localStorage.getItem('token');
     if (savedToken) {
@@ -24,7 +24,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setIsLoggedIn(false);
-    localStorage.removeItem('token'); // ✅ 로그아웃 시 토큰 제거
+    localStorage.removeItem('token'); // 로그아웃 시 토큰 삭제
   };
 
   return (
@@ -36,6 +36,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('AuthContext must be used within an AuthProvider');
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
