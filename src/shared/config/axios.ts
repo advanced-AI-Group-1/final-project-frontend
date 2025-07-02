@@ -12,6 +12,7 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: "http://localhost:8080",
+  
 });
 
 // ✅ 요청 보낼 때마다 JWT 자동으로 붙이기
