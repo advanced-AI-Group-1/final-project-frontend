@@ -8,6 +8,10 @@ import LoginRequiredPage from '@pages/LoginRequiredPage.tsx';
 
 import NewReportPage from '@pages/NewReportPage.tsx';
 import TestPdf from '@/tests/TestPdf.tsx';
+import ResetPassword from '@/pages/ResetPassword';
+import RequestPasswordReset from '@pages/RequestPasswordReset.tsx';
+import EmailVerifiedSuccess from '@pages/verified-success.tsx';
+import EmailVerifyFail from '@pages/verify-fail.tsx';
 
 
 const PageRouter: React.FC = () => {
@@ -26,6 +30,12 @@ const PageRouter: React.FC = () => {
       <Route path='/report' element={<NewReportPage />} />
       <Route path='/test-pdf' element={<TestPdf />} />
       <Route path='*' element={<Navigate to='/' replace />} />
+
+      <Route path="/request-password-reset" element={<RequestPasswordReset />} />
+      <Route path='/reset-password' element={<ResetPassword />} />
+      <Route path="/auth/verified-success" element={<EmailVerifiedSuccess />} />
+      <Route path="/auth/verify-fail" element={<EmailVerifyFail />} />
+      
 
     </Routes>
   );
