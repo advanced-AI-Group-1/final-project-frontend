@@ -1,23 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '@/shared/components/Header';
+import Footer from '@/shared/components/Footer'; // ✅ Footer 불러오기
+
+import { useAuth } from '@/context/AuthContext';
 import FinancialInputModal from '@/features/finanacial-form/components/FinancialInputModal.tsx';
 import { useAtom } from 'jotai';
 import { companyInfoAtom, creditRatingAtom, financialDataAtom } from '@/shared/store/atoms.ts';
 import { devLog } from '@/shared/util/logger';
 
-// ✅ 정확한 위치에서 useQueryResult 불러오기
 import { useQueryResult } from '@/features/mainpage/service/queryService';
 import { useReportMutation } from '@/features/report-generation/service/reportService';
 
 const SearchResultPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isLoggedIn } = useAuth();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [input, setInput] = useState('');
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
-  // 🔍 URL에서 keyword 추출
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/login-required');
+    }
+  }, [isLoggedIn, navigate]);
+
   const queryParams = new URLSearchParams(location.search);
   const keyword = queryParams.get('keyword')?.trim() || '';
 
@@ -46,7 +55,6 @@ const SearchResultPage: React.FC = () => {
     // 보고서 생성 요청 데이터 준비
     const financialData = company.financial_data;
 
-    // jotai atom에 재무 데이터 저장
     setFinancialData({
       ROA: financialData?.ROA || 0,
       ROE: financialData?.ROE || 0,
@@ -119,15 +127,15 @@ const SearchResultPage: React.FC = () => {
         
         // 보고서 페이지로 이동하면서 데이터 전달
         try {
-          navigate('/report', { 
-            state: { 
+          navigate('/report', {
+            state: {
               reportData: data,
               companyData: {
                 company_name: company.company_name,
                 financial_data: company.financial_data,
                 similarity_score: company.similarity_score
               }
-            } 
+            }
           });
         } catch (error) {
           devLog('페이지 이동 오류:', error);
@@ -257,6 +265,8 @@ const SearchResultPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <Footer variant="white" />
     </div>
   );
 };
