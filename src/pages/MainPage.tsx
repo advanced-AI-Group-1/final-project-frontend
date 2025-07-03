@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { devLog } from '@/shared/util/logger';
 import Header from '../shared/components/Header';
 import FinancialInputModal from '../features/finanacial-form/components/FinancialInputModal.tsx';
 
@@ -75,7 +76,8 @@ const MainPage: React.FC = () => {
   };
 
   const handleBack = () => {
-    console.log('뒤로가기 버튼 클릭됨');
+    devLog('뒤로가기 버튼 클릭됨');
+    navigate(-1);
   };
 
   return (

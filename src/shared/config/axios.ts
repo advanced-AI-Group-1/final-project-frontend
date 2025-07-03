@@ -7,24 +7,24 @@
 
 // export default api;
 
-
-import axios from "axios";
+import axios from 'axios';
+import { devLog } from '@/shared/util/logger.ts';
 
 const api = axios.create({
-  baseURL: "http://localhost:8080",
-  
+  baseURL: 'http://localhost:8080',
 });
 
 // ✅ 요청 보낼 때마다 JWT 자동으로 붙이기
 api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
+  config => {
+    const token = localStorage.getItem('token');
+    devLog('JWT-Token:', token);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  error => Promise.reject(error)
 );
 
 export default api;

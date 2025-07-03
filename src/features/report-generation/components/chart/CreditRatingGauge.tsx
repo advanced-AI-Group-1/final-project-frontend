@@ -159,7 +159,7 @@ const CreditRatingGauge: React.FC<CreditRatingGaugeProps> = ({
 
           {/* 중앙에 등급 표시 */}
           <div className='absolute inset-0 flex flex-col items-center justify-center'>
-            <div className='text-4xl font-bold' style={{ color: ratingColor }}>
+            <div className='text-2xl font-bold' style={{ color: ratingColor }}>
               {rating}
             </div>
             <div className='text-sm text-gray-500'>{ratingDescription}</div>
