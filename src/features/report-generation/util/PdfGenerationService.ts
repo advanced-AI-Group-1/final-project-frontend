@@ -24,6 +24,7 @@ export default class PdfGenerationService {
       .pdf-mode .text-gray-500 { color: #6b7280 !important; }
       .pdf-mode .text-gray-400 { color: #9ca3af !important; }
       .pdf-mode .text-emerald-600 { color: #059669 !important; }
+      .pdf-mode .text-yellow-500 { color: #eab308 !important; }
       .pdf-mode .text-orange-600 { color: #ea580c !important; }
       .pdf-mode .text-red-500 { color: #ef4444 !important; }
       .pdf-mode .text-white { color: #ffffff !important; }
