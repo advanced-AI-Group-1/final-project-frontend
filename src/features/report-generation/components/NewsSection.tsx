@@ -61,11 +61,13 @@ const NewsSection: React.FC<NewsSectionProps> = ({ newsItems }) => {
       </div>
 
       {/* PDF에서 보이는 뉴스 리스트 (일반 화면에서는 숨김) */}
-      <div className='print-only news-container' style={{ display: 'none' }}>
+      <div className='print-only news-container'>
         {newsItems.map((news, index) => (
-          <div key={`pdf-${index}`} className='news-item'>
-            <div className='news-title'>{news.title}</div>
-            <div className='news-url'>URL: {news.url}</div>
+          <div className='news-item-upper'>
+            <div key={`pdf-${index}`} className='news-item'>
+              <div className='news-title'>{news.title}</div>
+              <div className='news-url'>URL: {news.url}</div>
+            </div>
           </div>
         ))}
       </div>

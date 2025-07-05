@@ -29,11 +29,64 @@ export default class PdfGenerationService {
         display: block !important;
       }
       
-      /* 섹션 구분을 위한 페이지 나누기 제어 */
+      /* 핵심 개선: 섹션별 페이지 나누기 제어 강화 */
+      .pdf-mode .report-section {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        page-break-before: auto !important;
+        break-before: auto !important;
+        margin-bottom: 25px !important;
+        padding-bottom: 15px !important;
+        border-bottom: 0px solid #e5e7eb !important;
+        min-height: 100px !important;
+      }
+      
+      /* 섹션 제목과 내용을 함께 유지 */
+      .pdf-mode .report-section-header {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      
+      .pdf-mode .report-section-title {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        margin-top: -7px !important;
+        margin-bottom: 12px !important;
+        font-weight: bold !important;
+      }
+      
+      .pdf-mode .report-section-description {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        margin-top: -7px !important;
+        margin-bottom: 12px !important;
+      }
+      
+      /* 분석 내용 블록을 완전히 보호 */
+      .pdf-mode .prose {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      
+      .pdf-mode .prose p {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        margin-bottom: 8px !important;
+      }
+      
+      .pdf-mode .prose ul, .pdf-mode .prose ol {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      
+      /* 제목들 */
       .pdf-mode h1, .pdf-mode h2, .pdf-mode h3, .pdf-mode h4 {
         page-break-after: avoid !important;
         break-after: avoid !important;
         break-inside: avoid !important;
+        page-break-inside: avoid !important;
       }
       
       .pdf-mode .avoid-break {
@@ -41,34 +94,39 @@ export default class PdfGenerationService {
         break-inside: avoid !important;
       }
       
-      /* 재무안정성 분석 섹션 특별 처리 */
+      /* 재무안정성 분석 섹션 특별 처리 강화 */
       .pdf-mode .financial-stability {
         page-break-before: auto !important;
         page-break-after: avoid !important;
         break-before: auto !important;
         break-after: avoid !important;
-        min-height: 200px !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        min-height: 250px !important;
+        margin-bottom: 30px !important;
       }
       
       /* 분석 섹션들 간격 및 구분 */
       .pdf-mode .analysis-section {
-        margin-bottom: 20px !important;
-        padding-bottom: 10px !important;
-        border-bottom: 1px solid #e5e7eb !important;
+        margin-bottom: 25px !important;
+        padding-bottom: 15px !important;
+        border-bottom: 0px solid #e5e7eb !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
       }
       
       /* 뉴스 섹션 PDF 전용 스타일 - 제목과 내용을 한 페이지에 */
       .pdf-mode .news-section {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
-        margin-bottom: 20px !important;
-        min-height: 150px !important; /* 최소 높이 보장으로 제목과 내용이 함께 */
+        margin-bottom: 25px !important;
+        min-height: 200px !important;
       }
       
       .pdf-mode .news-section h3 {
         page-break-after: avoid !important;
         break-after: avoid !important;
-        margin-bottom: 12px !important;
+        margin-bottom: 15px !important;
       }
       
       .pdf-mode .news-container {
@@ -78,9 +136,11 @@ export default class PdfGenerationService {
         break-inside: avoid !important;
       }
       
+     
       .pdf-mode .news-item {
-        margin-bottom: 8px !important;
-        padding: 8px !important;
+        margin-bottom: 10px !important;
+        padding: 10px !important;
+        padding-bottom: 24px !important;
         border: 1px solid #e5e7eb !important;
         border-radius: 4px !important;
         page-break-inside: avoid !important;
@@ -91,7 +151,7 @@ export default class PdfGenerationService {
         font-size: 14px !important;
         font-weight: 600 !important;
         color: #2563eb !important;
-        margin-bottom: 4px !important;
+        margin-bottom: 6px !important;
       }
       
       .pdf-mode .news-url {
@@ -121,7 +181,7 @@ export default class PdfGenerationService {
       .pdf-mode .text-white { color: #ffffff !important; }
       
       .pdf-mode .bg-blue-50 { background-color: #eff6ff !important; }
-      .pdf-mode .bg-blue-500 { background-color: #3b82f6 !important; }
+      .pdf-mode .bg-blue-500 { color: #ffffff !important; background-color: #3b82f6 !important; }
       .pdf-mode .bg-blue-600 { background-color: #2563eb !important; }
       .pdf-mode .bg-white { background-color: #ffffff !important; }
       
@@ -148,16 +208,6 @@ export default class PdfGenerationService {
       .pdf-mode .summary-card-icon{
         margin-top: -10px !important;
         margin-left: 0.5px !important;
-      }
-      
-      .pdf-mode .report-section-title{
-        margin-top: -7px !important;
-        margin-bottom: 7px !important;
-      }
-      
-      .pdf-mode .report-section-description{
-        margin-top: -7px !important;
-        margin-bottom: 7px !important;
       }
       
       /* oklch나 최신 색상 함수 강제 오버라이드 */
@@ -196,7 +246,7 @@ export default class PdfGenerationService {
 
       // 1. PDF 호환 모드 활성화
       this.applyPdfCompatibleStyles(elementToConvert);
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 150)); // 조금 더 긴 대기시간
 
       const A4_WIDTH = 210;
       const A4_HEIGHT = 297;
@@ -268,7 +318,8 @@ export default class PdfGenerationService {
         const nextBreakPoint = breakPoints[i];
         const pageHeight = nextBreakPoint - currentY;
 
-        if (pageHeight <= 5) {
+        if (pageHeight <= 10) {
+          // 최소 높이 증가
           devLog(`페이지 ${pageNumber + 1}의 높이가 너무 작음:`, pageHeight);
           continue;
         }
@@ -314,7 +365,8 @@ export default class PdfGenerationService {
         const remainingHeight = fullCanvas.height - currentY;
         devLog(`마지막 페이지 추가: ${currentY} ~ ${fullCanvas.height} (높이: ${remainingHeight})`);
 
-        if (remainingHeight > 5) {
+        if (remainingHeight > 10) {
+          // 최소 높이 증가
           const pageCanvas = document.createElement('canvas');
           pageCanvas.width = fullCanvas.width;
           pageCanvas.height = remainingHeight;
@@ -372,20 +424,21 @@ export default class PdfGenerationService {
     devLog('최대 페이지 픽셀 높이:', maxPagePixels);
     devLog('전체 캔버스 높이:', totalCanvasHeight);
 
-    // 1. 더 정확한 섹션 선택자 사용
+    // 1. 더 정확한 섹션 선택자 사용 - report-section 우선순위 높임
     const sectionSelectors = [
+      '.report-section', // 최우선: 메인 보고서 섹션
+      '[data-section]', // 명시적 섹션 마커
+      '.financial-stability', // 재무안정성 섹션 특별 처리
+      '.news-section', // 뉴스 섹션
       'h1',
       'h2',
       'h3',
       'h4', // 제목들
-      '[data-section]', // 명시적 섹션 마커
-      '.mb-8', // 큰 여백을 가진 섹션들
-      '.bg-blue-50', // 요약 카드
       '.avoid-break', // 페이지 나누기 방지 요소
       '.section-header', // 섹션 헤더
       '.analysis-section', // 분석 섹션
-      '.financial-stability', // 재무안정성 섹션 특별 처리
-      '.news-section', // 뉴스 섹션 추가
+      '.mb-8', // 큰 여백을 가진 섹션들
+      '.bg-blue-50', // 요약 카드
       '[class*="analysis"]', // analysis가 포함된 클래스
       '.border-b', // 구분선이 있는 요소들
     ];
@@ -413,22 +466,26 @@ export default class PdfGenerationService {
       const height = rect.height * scale;
       const bottom = relativeTop + height;
 
-      // 섹션 우선순위 계산
+      // 섹션 우선순위 계산 - report-section 최우선
       let priority = 1;
       const tagName = section.tagName.toLowerCase();
       const className = section.className || '';
-      const text = section.textContent?.slice(0, 30) || '';
+      const text = section.textContent?.slice(0, 50) || '';
 
-      if (['h1', 'h2'].includes(tagName)) priority = 10;
-      else if (['h3', 'h4'].includes(tagName)) priority = 8;
-      else if (className.includes('avoid-break')) priority = 9;
+      // 메인 보고서 섹션들 최우선
+      if (className.includes('report-section')) priority = 15;
+      else if (['h1', 'h2'].includes(tagName)) priority = 12;
+      else if (className.includes('avoid-break')) priority = 11;
       else if (className.includes('financial-stability') || text.includes('재무안정성'))
-        priority = 7;
-      else if (className.includes('news-section') || text.includes('관련 최신 기사')) priority = 6;
-      else if (className.includes('bg-blue-50')) priority = 5;
-      else if (className.includes('section-header')) priority = 5;
-      else if (className.includes('analysis')) priority = 4;
-      else if (text.includes('분석')) priority = 3;
+        priority = 10;
+      else if (className.includes('news-section') || text.includes('관련 최신 기사')) priority = 9;
+      else if (['h3', 'h4'].includes(tagName)) priority = 8;
+      else if (className.includes('bg-blue-50')) priority = 7;
+      else if (className.includes('section-header')) priority = 6;
+      else if (className.includes('analysis')) priority = 5;
+      else if (text.includes('분석')) priority = 4;
+      else if (text.includes('수익성') || text.includes('안정성') || text.includes('효율성'))
+        priority = 3;
 
       sectionPositions.push({
         element: section,
@@ -448,7 +505,7 @@ export default class PdfGenerationService {
     sectionPositions.forEach((section, index) => {
       const el = section.element as HTMLElement;
       devLog(
-        `섹션 ${index + 1}: ${el.tagName} "${section.text}" - 위치: ${Math.round(section.top)}, 높이: ${Math.round(section.height)}, 우선순위: ${section.priority}`
+        `섹션 ${index + 1}: ${el.tagName}.${el.className} "${section.text.substring(0, 30)}..." - 위치: ${Math.round(section.top)}, 높이: ${Math.round(section.height)}, 우선순위: ${section.priority}`
       );
     });
 
@@ -463,31 +520,37 @@ export default class PdfGenerationService {
       // 현재 위치에서 이상적인 지점 사이의 모든 섹션 찾기
       const candidateSections = sectionPositions.filter(
         section =>
-          section.top > currentY && section.top <= idealNextBreakPoint + maxPagePixels * 0.3
+          section.top > currentY && section.top <= idealNextBreakPoint + maxPagePixels * 0.4 // 허용 범위 증가
       );
 
       let bestBreakPoint = idealNextBreakPoint;
 
       if (candidateSections.length > 0) {
-        // 4. 스마트 분할 점 선택
+        // 4. 스마트 분할 점 선택 - report-section 우선 고려
         let bestCandidate = candidateSections[0];
         let bestScore = -Infinity;
 
         for (const candidate of candidateSections) {
           // 점수 계산: 우선순위 + 이상적 위치와의 거리 + 섹션 크기 고려
           const distanceFromIdeal = Math.abs(candidate.top - idealNextBreakPoint);
-          const distanceScore = Math.max(0, 1 - distanceFromIdeal / maxPagePixels);
-          const priorityScore = candidate.priority / 10;
-          const sizeScore = candidate.height < maxPagePixels * 0.8 ? 1 : 0.5;
+          const distanceScore = Math.max(0, 1 - distanceFromIdeal / (maxPagePixels * 0.8));
+          const priorityScore = candidate.priority / 15; // 최대 우선순위 15로 조정
+          const sizeScore = candidate.height < maxPagePixels * 0.85 ? 1 : 0.3; // 큰 섹션 페널티 증가
 
-          // 재무안정성 분석 섹션은 특별 보너스
+          // report-section 특별 보너스
+          const sectionBonus = candidate.element.className.includes('report-section') ? 0.3 : 0;
+          // 재무안정성 분석 섹션 특별 보너스
           const specialBonus = candidate.text.includes('재무안정성') ? 0.2 : 0;
 
           const totalScore =
-            priorityScore * 0.4 + distanceScore * 0.4 + sizeScore * 0.2 + specialBonus;
+            priorityScore * 0.5 +
+            distanceScore * 0.3 +
+            sizeScore * 0.2 +
+            sectionBonus +
+            specialBonus;
 
           devLog(
-            `후보 섹션 "${candidate.text}": 점수=${totalScore.toFixed(2)} (우선순위=${priorityScore.toFixed(2)}, 거리=${distanceScore.toFixed(2)}, 크기=${sizeScore.toFixed(2)})`
+            `후보 섹션 "${candidate.text.substring(0, 20)}...": 점수=${totalScore.toFixed(2)} (우선순위=${priorityScore.toFixed(2)}, 거리=${distanceScore.toFixed(2)}, 크기=${sizeScore.toFixed(2)}, 보너스=${(sectionBonus + specialBonus).toFixed(2)})`
           );
 
           if (totalScore > bestScore) {
@@ -497,14 +560,26 @@ export default class PdfGenerationService {
         }
 
         bestBreakPoint = bestCandidate.top;
-        devLog(`최적 분할점 선택: "${bestCandidate.text}" (점수: ${bestScore.toFixed(2)})`);
+        devLog(
+          `최적 분할점 선택: "${bestCandidate.text.substring(0, 30)}..." (점수: ${bestScore.toFixed(2)})`
+        );
 
-        // 5. 섹션이 너무 클 경우 처리
-        if (bestCandidate.height > maxPagePixels * 0.9) {
-          const midPoint = bestCandidate.top + bestCandidate.height * 0.6;
-          if (midPoint - currentY > maxPagePixels * 0.4) {
-            bestBreakPoint = midPoint;
-            devLog(`큰 섹션 중간 분할: ${midPoint}`);
+        // 5. 섹션이 너무 클 경우 처리 - 더 보수적으로
+        if (bestCandidate.height > maxPagePixels * 1.2) {
+          const quarterPoint = bestCandidate.top + bestCandidate.height * 0.25;
+          const halfPoint = bestCandidate.top + bestCandidate.height * 0.5;
+          const threeQuarterPoint = bestCandidate.top + bestCandidate.height * 0.75;
+
+          // 가장 적절한 분할점 선택
+          if (quarterPoint - currentY > maxPagePixels * 0.6) {
+            bestBreakPoint = quarterPoint;
+            devLog(`큰 섹션 1/4 지점 분할: ${quarterPoint}`);
+          } else if (halfPoint - currentY > maxPagePixels * 0.4) {
+            bestBreakPoint = halfPoint;
+            devLog(`큰 섹션 중간 분할: ${halfPoint}`);
+          } else if (threeQuarterPoint - currentY > maxPagePixels * 0.3) {
+            bestBreakPoint = threeQuarterPoint;
+            devLog(`큰 섹션 3/4 지점 분할: ${threeQuarterPoint}`);
           }
         }
       }
@@ -512,22 +587,22 @@ export default class PdfGenerationService {
       // 6. 페이지 크기 검증
       const pageHeight = bestBreakPoint - currentY;
 
-      // 최소 페이지 높이 보장
-      if (pageHeight < maxPagePixels * 0.25 && bestBreakPoint < totalCanvasHeight) {
-        bestBreakPoint = Math.min(currentY + maxPagePixels * 0.6, totalCanvasHeight);
+      // 최소 페이지 높이 보장 - 더 엄격하게
+      if (pageHeight < maxPagePixels * 0.3 && bestBreakPoint < totalCanvasHeight) {
+        bestBreakPoint = Math.min(currentY + maxPagePixels * 0.7, totalCanvasHeight);
         devLog(`최소 페이지 높이 보장: ${bestBreakPoint}`);
       }
 
       // 최대 페이지 높이 제한
-      if (pageHeight > maxPagePixels * 1.3) {
-        bestBreakPoint = currentY + maxPagePixels;
+      if (pageHeight > maxPagePixels * 1.5) {
+        bestBreakPoint = currentY + maxPagePixels * 1.2;
         devLog(`최대 페이지 높이 제한: ${bestBreakPoint}`);
       }
 
-      // 7. 마지막 페이지 처리
+      // 7. 마지막 페이지 처리 - 더 관대하게
       const remainingHeight = totalCanvasHeight - bestBreakPoint;
-      if (remainingHeight > 0 && remainingHeight < maxPagePixels * 0.2 && breakPoints.length > 0) {
-        devLog(`마지막 페이지가 너무 작아서 이전 페이지와 합침 (남은 높이: ${remainingHeight})`);
+      if (remainingHeight > 0 && remainingHeight < maxPagePixels * 0.3 && breakPoints.length > 0) {
+        devLog(`마지막 페이지가 작아서 이전 페이지와 합침 (남은 높이: ${remainingHeight})`);
         break;
       }
 

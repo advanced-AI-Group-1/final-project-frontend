@@ -15,7 +15,7 @@ interface ReportSectionsProps {
 }
 
 const ReportSection: React.FC<ReportSectionProps> = ({ section }) => (
-  <div className='mb-8 page-break'>
+  <div className='report-section avoid-break mb-8 page-break'>
     <h3 className='text-xl font-bold mb-4 text-gray-800 border-b-2 border-gray-200 pb-2'>
       <div className='report-section-title'>{section.title}</div>
     </h3>

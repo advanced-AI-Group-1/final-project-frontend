@@ -123,16 +123,6 @@
       prose-code:text-blue-800 prose-code:bg-gray-100 prose-code:px-1 prose-code:rounded;
   }
   
-  /* 보고서 섹션 스타일 */
-  .report-section {
-    @apply bg-white rounded-xl shadow-sm p-6 transition-all duration-300 hover:shadow-md border border-gray-100;
-  }
-  
-  /* 보고서 섹션 헤더 스타일 */
-  .report-section-header {
-    @apply border-b border-gray-200 pb-3 mb-4;
-  }
-  
   /* 보고서 생성일 스타일 */
   .report-date {
     @apply text-right text-gray-500 text-sm mt-2;

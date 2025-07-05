@@ -173,7 +173,7 @@ const NewReportPage: React.FC = () => {
 
           {/* 기업 개요 섹션 */}
           {sections.length > 0 && sections[0] && (
-            <div className='mb-8 page-break'>
+            <div className='report-section avoid-break mb-8 page-break'>
               <h3 className='text-xl font-bold mb-4 text-gray-800 border-b-2 border-gray-200 pb-2'>
                 <div className='report-section-title'>{sections[0].title}</div>
               </h3>
