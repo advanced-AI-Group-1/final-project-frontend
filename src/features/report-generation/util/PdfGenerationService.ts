@@ -115,18 +115,29 @@ export default class PdfGenerationService {
         break-inside: avoid !important;
       }
       
-      /* 뉴스 섹션 PDF 전용 스타일 - 제목과 내용을 한 페이지에 */
+      /* 뉴스 섹션 PDF 전용 스타일 - 제목과 내용을 한 페이지에 강화 */
       .pdf-mode .news-section {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
-        margin-bottom: 25px !important;
-        min-height: 200px !important;
+        page-break-before: auto !important;
+        break-before: auto !important;
+        margin-bottom: 30px !important;
+        min-height: 250px !important;
+        padding: 0px !important;
+        border: 0px solid #e5e7eb !important;
+        border-radius: 8px !important;
+        background-color: #ffffff !important;
       }
       
       .pdf-mode .news-section h3 {
         page-break-after: avoid !important;
         break-after: avoid !important;
-        margin-bottom: 15px !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        margin-bottom: 18px !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        color: #1f2937 !important;
       }
       
       .pdf-mode .news-container {
@@ -134,30 +145,46 @@ export default class PdfGenerationService {
         break-before: avoid !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        margin-top: 0 !important;
+        border: none !important;
+        background-color: transparent !important;
       }
       
-     
       .pdf-mode .news-item {
-        margin-bottom: 10px !important;
-        padding: 10px !important;
-        padding-bottom: 24px !important;
-        border: 1px solid #e5e7eb !important;
-        border-radius: 4px !important;
+        margin-bottom: 12px !important;
+        padding: 12px !important;
+        padding-bottom: 26px !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 6px !important;
+        background-color: #ffffff !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
+        page-break-before: avoid !important;
+        break-before: avoid !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        min-height: 60px !important;
       }
       
       .pdf-mode .news-title {
         font-size: 14px !important;
         font-weight: 600 !important;
         color: #2563eb !important;
-        margin-bottom: 6px !important;
+        margin-bottom: 8px !important;
+        line-height: 1.4 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
       }
       
       .pdf-mode .news-url {
         font-size: 11px !important;
         color: #6b7280 !important;
         word-break: break-all !important;
+        line-height: 1.3 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
       }
       
       /* PDF 모드에서만 적용되는 hex 색상 */
@@ -246,7 +273,7 @@ export default class PdfGenerationService {
 
       // 1. PDF 호환 모드 활성화
       this.applyPdfCompatibleStyles(elementToConvert);
-      await new Promise(resolve => setTimeout(resolve, 150)); // 조금 더 긴 대기시간
+      await new Promise(resolve => setTimeout(resolve, 150));
 
       const A4_WIDTH = 210;
       const A4_HEIGHT = 297;
@@ -319,7 +346,6 @@ export default class PdfGenerationService {
         const pageHeight = nextBreakPoint - currentY;
 
         if (pageHeight <= 10) {
-          // 최소 높이 증가
           devLog(`페이지 ${pageNumber + 1}의 높이가 너무 작음:`, pageHeight);
           continue;
         }
@@ -366,7 +392,6 @@ export default class PdfGenerationService {
         devLog(`마지막 페이지 추가: ${currentY} ~ ${fullCanvas.height} (높이: ${remainingHeight})`);
 
         if (remainingHeight > 10) {
-          // 최소 높이 증가
           const pageCanvas = document.createElement('canvas');
           pageCanvas.width = fullCanvas.width;
           pageCanvas.height = remainingHeight;
@@ -474,11 +499,16 @@ export default class PdfGenerationService {
 
       // 메인 보고서 섹션들 최우선
       if (className.includes('report-section')) priority = 15;
+      else if (
+        className.includes('news-section') ||
+        text.includes('관련 최신 기사') ||
+        text.includes('뉴스')
+      )
+        priority = 14;
       else if (['h1', 'h2'].includes(tagName)) priority = 12;
       else if (className.includes('avoid-break')) priority = 11;
       else if (className.includes('financial-stability') || text.includes('재무안정성'))
         priority = 10;
-      else if (className.includes('news-section') || text.includes('관련 최신 기사')) priority = 9;
       else if (['h3', 'h4'].includes(tagName)) priority = 8;
       else if (className.includes('bg-blue-50')) priority = 7;
       else if (className.includes('section-header')) priority = 6;
@@ -520,13 +550,13 @@ export default class PdfGenerationService {
       // 현재 위치에서 이상적인 지점 사이의 모든 섹션 찾기
       const candidateSections = sectionPositions.filter(
         section =>
-          section.top > currentY && section.top <= idealNextBreakPoint + maxPagePixels * 0.4 // 허용 범위 증가
+          section.top > currentY && section.top <= idealNextBreakPoint + maxPagePixels * 0.4
       );
 
       let bestBreakPoint = idealNextBreakPoint;
 
       if (candidateSections.length > 0) {
-        // 4. 스마트 분할 점 선택 - report-section 우선 고려
+        // 4. 스마트 분할 점 선택
         let bestCandidate = candidateSections[0];
         let bestScore = -Infinity;
 
@@ -534,12 +564,17 @@ export default class PdfGenerationService {
           // 점수 계산: 우선순위 + 이상적 위치와의 거리 + 섹션 크기 고려
           const distanceFromIdeal = Math.abs(candidate.top - idealNextBreakPoint);
           const distanceScore = Math.max(0, 1 - distanceFromIdeal / (maxPagePixels * 0.8));
-          const priorityScore = candidate.priority / 15; // 최대 우선순위 15로 조정
-          const sizeScore = candidate.height < maxPagePixels * 0.85 ? 1 : 0.3; // 큰 섹션 페널티 증가
+          const priorityScore = candidate.priority / 15;
+          const sizeScore = candidate.height < maxPagePixels * 0.85 ? 1 : 0.3;
 
-          // report-section 특별 보너스
+          // 보너스 점수 계산
           const sectionBonus = candidate.element.className.includes('report-section') ? 0.3 : 0;
-          // 재무안정성 분석 섹션 특별 보너스
+          const newsBonus =
+            candidate.element.className.includes('news-section') ||
+            candidate.text.includes('뉴스') ||
+            candidate.text.includes('관련 최신 기사')
+              ? 0.25
+              : 0;
           const specialBonus = candidate.text.includes('재무안정성') ? 0.2 : 0;
 
           const totalScore =
@@ -547,10 +582,11 @@ export default class PdfGenerationService {
             distanceScore * 0.3 +
             sizeScore * 0.2 +
             sectionBonus +
+            newsBonus +
             specialBonus;
 
           devLog(
-            `후보 섹션 "${candidate.text.substring(0, 20)}...": 점수=${totalScore.toFixed(2)} (우선순위=${priorityScore.toFixed(2)}, 거리=${distanceScore.toFixed(2)}, 크기=${sizeScore.toFixed(2)}, 보너스=${(sectionBonus + specialBonus).toFixed(2)})`
+            `후보 섹션 "${candidate.text.substring(0, 20)}...": 점수=${totalScore.toFixed(2)} (우선순위=${priorityScore.toFixed(2)}, 거리=${distanceScore.toFixed(2)}, 크기=${sizeScore.toFixed(2)}, 보너스=${(sectionBonus + newsBonus + specialBonus).toFixed(2)})`
           );
 
           if (totalScore > bestScore) {
@@ -564,7 +600,7 @@ export default class PdfGenerationService {
           `최적 분할점 선택: "${bestCandidate.text.substring(0, 30)}..." (점수: ${bestScore.toFixed(2)})`
         );
 
-        // 5. 섹션이 너무 클 경우 처리 - 더 보수적으로
+        // 5. 섹션이 너무 클 경우 처리
         if (bestCandidate.height > maxPagePixels * 1.2) {
           const quarterPoint = bestCandidate.top + bestCandidate.height * 0.25;
           const halfPoint = bestCandidate.top + bestCandidate.height * 0.5;
@@ -587,7 +623,7 @@ export default class PdfGenerationService {
       // 6. 페이지 크기 검증
       const pageHeight = bestBreakPoint - currentY;
 
-      // 최소 페이지 높이 보장 - 더 엄격하게
+      // 최소 페이지 높이 보장
       if (pageHeight < maxPagePixels * 0.3 && bestBreakPoint < totalCanvasHeight) {
         bestBreakPoint = Math.min(currentY + maxPagePixels * 0.7, totalCanvasHeight);
         devLog(`최소 페이지 높이 보장: ${bestBreakPoint}`);
@@ -599,7 +635,7 @@ export default class PdfGenerationService {
         devLog(`최대 페이지 높이 제한: ${bestBreakPoint}`);
       }
 
-      // 7. 마지막 페이지 처리 - 더 관대하게
+      // 7. 마지막 페이지 처리
       const remainingHeight = totalCanvasHeight - bestBreakPoint;
       if (remainingHeight > 0 && remainingHeight < maxPagePixels * 0.3 && breakPoints.length > 0) {
         devLog(`마지막 페이지가 작아서 이전 페이지와 합침 (남은 높이: ${remainingHeight})`);
