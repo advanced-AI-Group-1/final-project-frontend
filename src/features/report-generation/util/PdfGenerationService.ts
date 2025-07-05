@@ -1,6 +1,6 @@
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { devLog, devError } from '@/shared/util/logger';
+import { devError, devLog } from '@/shared/util/logger';
 
 export default class PdfGenerationService {
   static applyPdfCompatibleStyles(element: HTMLElement): void {
@@ -9,6 +9,97 @@ export default class PdfGenerationService {
     const style = document.createElement('style');
     style.id = 'pdf-compatibility-styles';
     style.textContent = `
+      /* PDF 모드 기본 설정 */
+      .pdf-mode {
+        font-family: 'Noto Sans KR', sans-serif !important;
+        background: white !important;
+        color: black !important;
+      }
+      
+      .pdf-mode * {
+        box-shadow: none !important;
+        text-shadow: none !important;
+      }
+      
+      .pdf-mode .no-print {
+        display: none !important;
+      }
+      
+      .pdf-mode .print-only {
+        display: block !important;
+      }
+      
+      /* 섹션 구분을 위한 페이지 나누기 제어 */
+      .pdf-mode h1, .pdf-mode h2, .pdf-mode h3, .pdf-mode h4 {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        break-inside: avoid !important;
+      }
+      
+      .pdf-mode .avoid-break {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      
+      /* 재무안정성 분석 섹션 특별 처리 */
+      .pdf-mode .financial-stability {
+        page-break-before: auto !important;
+        page-break-after: avoid !important;
+        break-before: auto !important;
+        break-after: avoid !important;
+        min-height: 200px !important;
+      }
+      
+      /* 분석 섹션들 간격 및 구분 */
+      .pdf-mode .analysis-section {
+        margin-bottom: 20px !important;
+        padding-bottom: 10px !important;
+        border-bottom: 1px solid #e5e7eb !important;
+      }
+      
+      /* 뉴스 섹션 PDF 전용 스타일 - 제목과 내용을 한 페이지에 */
+      .pdf-mode .news-section {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        margin-bottom: 20px !important;
+        min-height: 150px !important; /* 최소 높이 보장으로 제목과 내용이 함께 */
+      }
+      
+      .pdf-mode .news-section h3 {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        margin-bottom: 12px !important;
+      }
+      
+      .pdf-mode .news-container {
+        page-break-before: avoid !important;
+        break-before: avoid !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      
+      .pdf-mode .news-item {
+        margin-bottom: 8px !important;
+        padding: 8px !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 4px !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      
+      .pdf-mode .news-title {
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        color: #2563eb !important;
+        margin-bottom: 4px !important;
+      }
+      
+      .pdf-mode .news-url {
+        font-size: 11px !important;
+        color: #6b7280 !important;
+        word-break: break-all !important;
+      }
+      
       /* PDF 모드에서만 적용되는 hex 색상 */
       .pdf-mode .bg-gradient-to-r {
         background: linear-gradient(to right, #2563eb, #1d4ed8) !important;
@@ -31,6 +122,7 @@ export default class PdfGenerationService {
       
       .pdf-mode .bg-blue-50 { background-color: #eff6ff !important; }
       .pdf-mode .bg-blue-500 { background-color: #3b82f6 !important; }
+      .pdf-mode .bg-blue-600 { background-color: #2563eb !important; }
       .pdf-mode .bg-white { background-color: #ffffff !important; }
       
       .pdf-mode .border-blue-500 { border-color: #3b82f6 !important; }
@@ -49,9 +141,23 @@ export default class PdfGenerationService {
         margin-top: 7px !important;
       }
       
-      /* PDF에서만 보이는 요소 표시 */
-      .print-only {
-        display: block !important;
+      .pdf-mode .summary-card-icon-container{
+        margin-bottom: -21px !important;
+      }
+      
+      .pdf-mode .summary-card-icon{
+        margin-top: -10px !important;
+        margin-left: 0.5px !important;
+      }
+      
+      .pdf-mode .report-section-title{
+        margin-top: -7px !important;
+        margin-bottom: 7px !important;
+      }
+      
+      .pdf-mode .report-section-description{
+        margin-top: -7px !important;
+        margin-bottom: 7px !important;
       }
       
       /* oklch나 최신 색상 함수 강제 오버라이드 */
@@ -110,8 +216,8 @@ export default class PdfGenerationService {
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        imageTimeout: 30000, // 이미지 로딩 타임아웃 증가
-        logging: true, // 디버깅을 위한 로깅 활성화
+        imageTimeout: 30000,
+        logging: true,
         backgroundColor: '#ffffff',
         width: elementToConvert.scrollWidth,
         height: elementToConvert.scrollHeight,
@@ -123,14 +229,13 @@ export default class PdfGenerationService {
           if (reportContainer) {
             reportContainer.classList.add('pdf-mode');
           }
-          
-          // print-only 클래스를 가진 요소들을 표시
+
           const printOnly = clonedDoc.querySelectorAll('.print-only');
           printOnly.forEach(el => {
             (el as HTMLElement).style.display = 'block';
           });
-          
-          // 이미지 로딩 상태 확인
+
+          // 이미지 로딩 상태 확인 및 대체
           const images = clonedDoc.querySelectorAll('img');
           devLog(`PDF 생성: ${images.length}개의 이미지 발견`);
           images.forEach((img, index) => {
@@ -138,14 +243,14 @@ export default class PdfGenerationService {
               devLog(`이미지 ${index + 1}가 아직 로드되지 않음: ${img.src}`);
             } else if (img.naturalWidth === 0) {
               devLog(`이미지 ${index + 1} 로드 실패: ${img.src}`);
-              // 이미지 로드 실패 시 대체 이미지 표시
-              img.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItaW1hZ2UiPjxyZWN0IHg9IjMiIHk9IjMiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjIiIHJ5PSIyIj48L3JlY3Q+PGNpcmNsZSBjeD0iOC41IiBjeT0iOC41IiByPSIxLjUiPjwvY2lyY2xlPjxwb2x5bGluZSBwb2ludHM9IjIxIDE1IDE2IDEwIDUgMjEiPjwvcG9seWxpbmU+PC9zdmc+';
+              img.src =
+                'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItaW1hZ2UiPjxyZWN0IHg9IjMiIHk9IjMiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgcng9IjIiIHJ5PSIyIj48L3JlY3Q+PGNpcmNsZSBjeD0iOC41IiBjeT0iOC41IiByPSIxLjUiPjwvY2lyY2xlPjxwb2x5bGluZSBwb2ludHM9IjIxIDE1IDE2IDEwIDUgMjEiPjwvcG9seWxpbmU+PC9zdmc+';
             }
           });
         },
       });
 
-      // 3. 페이지 나누기 포인트 찾기
+      // 3. 개선된 페이지 나누기 포인트 찾기
       const breakPoints = await this.findOptimalBreakPoints(
         elementToConvert,
         contentHeight,
@@ -156,7 +261,6 @@ export default class PdfGenerationService {
       let currentY = 0;
       let pageNumber = 0;
 
-      // 디버깅: 페이지 나누기 지점 로깅
       devLog('페이지 나누기 지점:', breakPoints);
       devLog('전체 캔버스 높이:', fullCanvas.height);
 
@@ -164,13 +268,14 @@ export default class PdfGenerationService {
         const nextBreakPoint = breakPoints[i];
         const pageHeight = nextBreakPoint - currentY;
 
-        // 페이지 높이가 너무 작으면 건너뛰지 않고 최소 높이 보장
         if (pageHeight <= 5) {
           devLog(`페이지 ${pageNumber + 1}의 높이가 너무 작음:`, pageHeight);
           continue;
         }
 
-        devLog(`페이지 ${pageNumber + 1} 생성: ${currentY} ~ ${nextBreakPoint} (높이: ${pageHeight})`);
+        devLog(
+          `페이지 ${pageNumber + 1} 생성: ${currentY} ~ ${nextBreakPoint} (높이: ${pageHeight})`
+        );
 
         const pageCanvas = document.createElement('canvas');
         pageCanvas.width = fullCanvas.width;
@@ -178,7 +283,6 @@ export default class PdfGenerationService {
 
         const pageCtx = pageCanvas.getContext('2d');
         if (pageCtx) {
-          // 캔버스 복사 시 정확한 위치에서 복사
           pageCtx.drawImage(
             fullCanvas,
             0,
@@ -198,7 +302,6 @@ export default class PdfGenerationService {
           const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
           const pdfPageHeight = (pageHeight * contentWidth) / fullCanvas.width;
 
-          // 페이지 추가 시 정확한 위치와 크기로 추가
           pdf.addImage(pageImgData, 'JPEG', margins.left, margins.top, contentWidth, pdfPageHeight);
         }
 
@@ -210,8 +313,8 @@ export default class PdfGenerationService {
       if (currentY < fullCanvas.height) {
         const remainingHeight = fullCanvas.height - currentY;
         devLog(`마지막 페이지 추가: ${currentY} ~ ${fullCanvas.height} (높이: ${remainingHeight})`);
-        
-        if (remainingHeight > 5) {  // 최소 높이 확인
+
+        if (remainingHeight > 5) {
           const pageCanvas = document.createElement('canvas');
           pageCanvas.width = fullCanvas.width;
           pageCanvas.height = remainingHeight;
@@ -233,7 +336,14 @@ export default class PdfGenerationService {
             pdf.addPage();
             const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.95);
             const pdfPageHeight = (remainingHeight * contentWidth) / fullCanvas.width;
-            pdf.addImage(pageImgData, 'JPEG', margins.left, margins.top, contentWidth, pdfPageHeight);
+            pdf.addImage(
+              pageImgData,
+              'JPEG',
+              margins.left,
+              margins.top,
+              contentWidth,
+              pdfPageHeight
+            );
           }
         }
       }
@@ -262,12 +372,39 @@ export default class PdfGenerationService {
     devLog('최대 페이지 픽셀 높이:', maxPagePixels);
     devLog('전체 캔버스 높이:', totalCanvasHeight);
 
-    // 섹션 요소들을 찾습니다
-    const sections = Array.from(element.querySelectorAll('h1, h2, h3, .mb-8, .bg-blue-50, .avoid-break'))
-      .filter(Boolean);
+    // 1. 더 정확한 섹션 선택자 사용
+    const sectionSelectors = [
+      'h1',
+      'h2',
+      'h3',
+      'h4', // 제목들
+      '[data-section]', // 명시적 섹션 마커
+      '.mb-8', // 큰 여백을 가진 섹션들
+      '.bg-blue-50', // 요약 카드
+      '.avoid-break', // 페이지 나누기 방지 요소
+      '.section-header', // 섹션 헤더
+      '.analysis-section', // 분석 섹션
+      '.financial-stability', // 재무안정성 섹션 특별 처리
+      '.news-section', // 뉴스 섹션 추가
+      '[class*="analysis"]', // analysis가 포함된 클래스
+      '.border-b', // 구분선이 있는 요소들
+    ];
 
-    // 각 섹션의 위치와 높이 정보를 저장
-    const sectionPositions: { element: Element; top: number; height: number; bottom: number; }[] = [];
+    const sections = Array.from(element.querySelectorAll(sectionSelectors.join(', ')))
+      .filter(Boolean)
+      .filter((el, index, arr) => arr.indexOf(el) === index); // 중복 제거
+
+    // 2. 각 섹션의 정확한 위치 정보 수집
+    const sectionPositions: {
+      element: Element;
+      top: number;
+      height: number;
+      bottom: number;
+      isTitle: boolean;
+      priority: number;
+      text: string;
+    }[] = [];
+
     const elementRect = element.getBoundingClientRect();
 
     sections.forEach(section => {
@@ -276,75 +413,143 @@ export default class PdfGenerationService {
       const height = rect.height * scale;
       const bottom = relativeTop + height;
 
+      // 섹션 우선순위 계산
+      let priority = 1;
+      const tagName = section.tagName.toLowerCase();
+      const className = section.className || '';
+      const text = section.textContent?.slice(0, 30) || '';
+
+      if (['h1', 'h2'].includes(tagName)) priority = 10;
+      else if (['h3', 'h4'].includes(tagName)) priority = 8;
+      else if (className.includes('avoid-break')) priority = 9;
+      else if (className.includes('financial-stability') || text.includes('재무안정성'))
+        priority = 7;
+      else if (className.includes('news-section') || text.includes('관련 최신 기사')) priority = 6;
+      else if (className.includes('bg-blue-50')) priority = 5;
+      else if (className.includes('section-header')) priority = 5;
+      else if (className.includes('analysis')) priority = 4;
+      else if (text.includes('분석')) priority = 3;
+
       sectionPositions.push({
         element: section,
         top: relativeTop,
         height: height,
-        bottom: bottom
+        bottom: bottom,
+        isTitle: ['h1', 'h2', 'h3', 'h4'].includes(tagName),
+        priority: priority,
+        text: text,
       });
     });
 
     // 위치에 따라 정렬
     sectionPositions.sort((a, b) => a.top - b.top);
-    
-    devLog('섹션 수:', sectionPositions.length);
-    
-    // 균등한 페이지 분할 계산
+
+    devLog('발견된 섹션 수:', sectionPositions.length);
+    sectionPositions.forEach((section, index) => {
+      const el = section.element as HTMLElement;
+      devLog(
+        `섹션 ${index + 1}: ${el.tagName} "${section.text}" - 위치: ${Math.round(section.top)}, 높이: ${Math.round(section.height)}, 우선순위: ${section.priority}`
+      );
+    });
+
+    // 3. 개선된 페이지 분할 로직
     const breakPoints: number[] = [];
     let currentY = 0;
-    
+
     while (currentY < totalCanvasHeight) {
-      // 다음 이상적인 페이지 끝 위치
+      // 이상적인 다음 페이지 끝 위치
       let idealNextBreakPoint = Math.min(currentY + maxPagePixels, totalCanvasHeight);
-      
-      // 이상적인 지점 근처에서 가장 적합한 섹션 시작 지점 찾기
+
+      // 현재 위치에서 이상적인 지점 사이의 모든 섹션 찾기
+      const candidateSections = sectionPositions.filter(
+        section =>
+          section.top > currentY && section.top <= idealNextBreakPoint + maxPagePixels * 0.3
+      );
+
       let bestBreakPoint = idealNextBreakPoint;
-      let minDistance = Number.MAX_VALUE;
-      
-      // 섹션 시작 지점 검사
-      for (const section of sectionPositions) {
-        // 현재 페이지 내에 있거나 바로 다음에 있는 섹션 시작 지점
-        if (section.top > currentY && section.top <= idealNextBreakPoint + maxPagePixels * 0.2) {
-          const distance = Math.abs(section.top - idealNextBreakPoint);
-          
-          // 이상적인 지점에 가장 가까운 섹션 시작 지점 선택
-          if (distance < minDistance) {
-            minDistance = distance;
-            bestBreakPoint = section.top;
+
+      if (candidateSections.length > 0) {
+        // 4. 스마트 분할 점 선택
+        let bestCandidate = candidateSections[0];
+        let bestScore = -Infinity;
+
+        for (const candidate of candidateSections) {
+          // 점수 계산: 우선순위 + 이상적 위치와의 거리 + 섹션 크기 고려
+          const distanceFromIdeal = Math.abs(candidate.top - idealNextBreakPoint);
+          const distanceScore = Math.max(0, 1 - distanceFromIdeal / maxPagePixels);
+          const priorityScore = candidate.priority / 10;
+          const sizeScore = candidate.height < maxPagePixels * 0.8 ? 1 : 0.5;
+
+          // 재무안정성 분석 섹션은 특별 보너스
+          const specialBonus = candidate.text.includes('재무안정성') ? 0.2 : 0;
+
+          const totalScore =
+            priorityScore * 0.4 + distanceScore * 0.4 + sizeScore * 0.2 + specialBonus;
+
+          devLog(
+            `후보 섹션 "${candidate.text}": 점수=${totalScore.toFixed(2)} (우선순위=${priorityScore.toFixed(2)}, 거리=${distanceScore.toFixed(2)}, 크기=${sizeScore.toFixed(2)})`
+          );
+
+          if (totalScore > bestScore) {
+            bestScore = totalScore;
+            bestCandidate = candidate;
+          }
+        }
+
+        bestBreakPoint = bestCandidate.top;
+        devLog(`최적 분할점 선택: "${bestCandidate.text}" (점수: ${bestScore.toFixed(2)})`);
+
+        // 5. 섹션이 너무 클 경우 처리
+        if (bestCandidate.height > maxPagePixels * 0.9) {
+          const midPoint = bestCandidate.top + bestCandidate.height * 0.6;
+          if (midPoint - currentY > maxPagePixels * 0.4) {
+            bestBreakPoint = midPoint;
+            devLog(`큰 섹션 중간 분할: ${midPoint}`);
           }
         }
       }
-      
-      // 적절한 섹션 시작 지점을 찾지 못했다면 이상적인 지점 사용
-      if (bestBreakPoint === idealNextBreakPoint || minDistance > maxPagePixels * 0.3) {
-        bestBreakPoint = idealNextBreakPoint;
+
+      // 6. 페이지 크기 검증
+      const pageHeight = bestBreakPoint - currentY;
+
+      // 최소 페이지 높이 보장
+      if (pageHeight < maxPagePixels * 0.25 && bestBreakPoint < totalCanvasHeight) {
+        bestBreakPoint = Math.min(currentY + maxPagePixels * 0.6, totalCanvasHeight);
+        devLog(`최소 페이지 높이 보장: ${bestBreakPoint}`);
       }
-      
-      // 페이지 최소 높이 보장 (최대 높이의 30% 이상)
-      if (bestBreakPoint - currentY < maxPagePixels * 0.3 && bestBreakPoint < totalCanvasHeight) {
-        bestBreakPoint = Math.min(currentY + maxPagePixels, totalCanvasHeight);
-      }
-      
-      // 페이지 최대 높이 제한 (최대 높이의 120% 이하)
-      if (bestBreakPoint - currentY > maxPagePixels * 1.2) {
+
+      // 최대 페이지 높이 제한
+      if (pageHeight > maxPagePixels * 1.3) {
         bestBreakPoint = currentY + maxPagePixels;
+        devLog(`최대 페이지 높이 제한: ${bestBreakPoint}`);
       }
-      
-      // 마지막 페이지가 너무 작으면 이전 페이지와 합치기
-      if (totalCanvasHeight - bestBreakPoint < maxPagePixels * 0.2 && breakPoints.length > 0) {
-        break; // 마지막 페이지는 추가하지 않고 종료
+
+      // 7. 마지막 페이지 처리
+      const remainingHeight = totalCanvasHeight - bestBreakPoint;
+      if (remainingHeight > 0 && remainingHeight < maxPagePixels * 0.2 && breakPoints.length > 0) {
+        devLog(`마지막 페이지가 너무 작아서 이전 페이지와 합침 (남은 높이: ${remainingHeight})`);
+        break;
       }
-      
+
       breakPoints.push(bestBreakPoint);
       currentY = bestBreakPoint;
+
+      devLog(
+        `페이지 ${breakPoints.length} 추가: ${Math.round(currentY)}px (높이: ${Math.round(pageHeight)}px)`
+      );
     }
-    
-    // 마지막 페이지가 추가되지 않았으면 전체 높이 추가
+
+    // 마지막 페이지 추가
     if (breakPoints.length === 0 || breakPoints[breakPoints.length - 1] < totalCanvasHeight) {
       breakPoints.push(totalCanvasHeight);
     }
-    
-    devLog('계산된 페이지 나누기 지점:', breakPoints);
+
+    devLog(
+      '최종 페이지 나누기 지점:',
+      breakPoints.map(p => Math.round(p))
+    );
+    devLog('총 페이지 수:', breakPoints.length);
+
     return breakPoints;
   }
 }

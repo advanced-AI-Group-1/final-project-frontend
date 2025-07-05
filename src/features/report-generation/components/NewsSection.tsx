@@ -22,14 +22,14 @@ const NewsSection: React.FC<NewsSectionProps> = ({ newsItems }) => {
   };
 
   return (
-    <div className='mb-8'>
+    <div className='mb-8 news-section avoid-break' data-section='news'>
       <h3 className='font-bold mb-4 text-gray-800 pb-2'>[관련 최신 기사]</h3>
-      
+
       {/* 일반 화면에서만 보이는 뉴스 카드 (PDF에서는 제외됨) */}
       <div className='grid grid-cols-1 gap-4 no-print'>
         {newsItems.map((news, index) => (
-          <div 
-            key={`web-${index}`} 
+          <div
+            key={`web-${index}`}
             className='bg-white rounded-lg shadow p-4 border border-gray-200 hover:border-blue-500 hover:shadow-lg transition-all duration-200 cursor-pointer'
             onClick={() => handleNewsClick(news.url)}
           >
@@ -59,32 +59,15 @@ const NewsSection: React.FC<NewsSectionProps> = ({ newsItems }) => {
           </div>
         ))}
       </div>
-      
+
       {/* PDF에서 보이는 뉴스 리스트 (일반 화면에서는 숨김) */}
-      <div className='print-only'>
-        <div className='grid grid-cols-1 gap-4'>
-          {newsItems.map((news, index) => (
-            <div key={`pdf-${index}`} className='bg-white rounded-lg shadow p-4 border border-gray-200'>
-              <div className='flex-grow'>
-                <h4 className='text-lg font-semibold mb-1 text-blue-600'>
-                  {news.title}
-                </h4>
-                {news.source && news.published_date && (
-                  <div className='text-xs text-gray-500 mb-2'>
-                    {news.source} · {news.published_date}
-                  </div>
-                )}
-                {news.summary && <p className='text-sm text-gray-700'>{news.summary}</p>}
-                
-                {/* URL 표시 */}
-                <div className='text-xs text-gray-500 mt-2'>
-                  <span className='font-medium'>URL: </span>
-                  <span>{news.url}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className='print-only news-container' style={{ display: 'none' }}>
+        {newsItems.map((news, index) => (
+          <div key={`pdf-${index}`} className='news-item'>
+            <div className='news-title'>{news.title}</div>
+            <div className='news-url'>URL: {news.url}</div>
+          </div>
+        ))}
       </div>
     </div>
   );

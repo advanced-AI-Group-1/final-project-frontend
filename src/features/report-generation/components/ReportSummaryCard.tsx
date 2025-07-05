@@ -24,8 +24,10 @@ const ReportSummaryCard: React.FC<SummaryCardProps> = ({
     return (
       <div className='bg-blue-50 rounded-lg p-6 mb-8 border-l-4 border-blue-500'>
         <div className='flex items-center mb-4'>
-          <div className='bg-blue-500 rounded-full p-0.5 mr-3'>
-            <span className='text-blue-600'>📊</span>
+          <div className='bg-blue-500 rounded-full w-6.5 h-6.5  p-0.5 mr-3 summary-card-icon-container'>
+            <div className='summary-card-icon'>
+              <span className='text-blue-600'>📊</span>
+            </div>
           </div>
           <h3 className='text-xl font-bold text-gray-800'>신용분석 요약 카드</h3>
         </div>
@@ -152,8 +154,10 @@ const ReportSummaryCard: React.FC<SummaryCardProps> = ({
   return (
     <div className='bg-blue-50 rounded-lg p-6 mb-8 border-l-4 border-blue-500'>
       <div className='flex items-center mb-4'>
-        <div className='bg-blue-500 rounded-full p-0.5 mr-3'>
-          <span className='text-blue-600'>📊</span>
+        <div className='bg-blue-500 rounded-full w-6.5 h-6.5  p-0.5 mr-3 summary-card-icon-container'>
+          <div className='summary-card-icon'>
+            <span className='text-blue-600'>📊</span>
+          </div>
         </div>
         <h3 className='text-xl font-bold text-gray-800'>신용분석 요약 카드</h3>
       </div>
