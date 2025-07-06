@@ -1,7 +1,6 @@
 import React from 'react';
 import type {
-  RatingInfo,
-  SummaryCardStructured,
+  RatingInfo, SummaryCardStructured,
 } from '@/features/report-generation/types/ReportTypes.ts';
 
 interface SummaryCardProps {
@@ -207,7 +206,8 @@ const ReportSummaryCard: React.FC<SummaryCardProps> = ({
             <div
               className={`text-2xl font-bold mb-1 ${getMetricColor(summaryCardData.financial_metrics.roa)}`}
             >
-              {summaryCardData.financial_metrics.roa.value}%
+               { summaryCardData.financial_metrics.roa.display_value
+                 || `${summaryCardData.financial_metrics.roa.value*100}%`}
             </div>
             <div className='text-xs text-gray-600'>
               ROA ({summaryCardData.financial_metrics.roa.evaluation})
@@ -217,7 +217,8 @@ const ReportSummaryCard: React.FC<SummaryCardProps> = ({
             <div
               className={`text-2xl font-bold mb-1 ${getMetricColor(summaryCardData.financial_metrics.roe)}`}
             >
-              {summaryCardData.financial_metrics.roe.value}%
+              {summaryCardData.financial_metrics.roe.display_value
+                || `${summaryCardData.financial_metrics.roe.value*100}%`}
             </div>
             <div className='text-xs text-gray-600'>
               ROE ({summaryCardData.financial_metrics.roe.evaluation})
@@ -227,7 +228,8 @@ const ReportSummaryCard: React.FC<SummaryCardProps> = ({
             <div
               className={`text-2xl font-bold mb-1 ${getMetricColor(summaryCardData.financial_metrics.debt_ratio)}`}
             >
-              {summaryCardData.financial_metrics.debt_ratio.value}%
+              {summaryCardData.financial_metrics.debt_ratio.display_value
+                || `${summaryCardData.financial_metrics.debt_ratio.value*100}%`}
             </div>
             <div className='text-xs text-gray-600'>
               부채비율 ({summaryCardData.financial_metrics.debt_ratio.evaluation})
@@ -237,7 +239,8 @@ const ReportSummaryCard: React.FC<SummaryCardProps> = ({
             <div
               className={`text-2xl font-bold mb-1 ${getMetricColor(summaryCardData.financial_metrics.operating_profit_margin)}`}
             >
-              {summaryCardData.financial_metrics.operating_profit_margin.value}%
+              {summaryCardData.financial_metrics.operating_profit_margin.display_value
+                || `${summaryCardData.financial_metrics.operating_profit_margin.value*100}%`}
             </div>
             <div className='text-xs text-gray-600'>
               영업이익률 ({summaryCardData.financial_metrics.operating_profit_margin.evaluation})

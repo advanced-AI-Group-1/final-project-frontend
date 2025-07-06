@@ -123,7 +123,7 @@ export default class PdfGenerationService {
         break-before: auto !important;
         margin-bottom: 30px !important;
         min-height: 250px !important;
-        padding: 0px !important;
+        padding: 15px !important;
         border: 0px solid #e5e7eb !important;
         border-radius: 8px !important;
         background-color: #ffffff !important;
@@ -148,8 +148,6 @@ export default class PdfGenerationService {
         page-break-after: avoid !important;
         break-after: avoid !important;
         margin-top: 0 !important;
-        border: none !important;
-        background-color: transparent !important;
       }
       
       .pdf-mode .news-item {
@@ -499,23 +497,16 @@ export default class PdfGenerationService {
 
       // 메인 보고서 섹션들 최우선
       if (className.includes('report-section')) priority = 15;
-      else if (
-        className.includes('news-section') ||
-        text.includes('관련 최신 기사') ||
-        text.includes('뉴스')
-      )
-        priority = 14;
+      else if (className.includes('news-section') || text.includes('관련 최신 기사') || text.includes('뉴스')) priority = 14;
       else if (['h1', 'h2'].includes(tagName)) priority = 12;
       else if (className.includes('avoid-break')) priority = 11;
-      else if (className.includes('financial-stability') || text.includes('재무안정성'))
-        priority = 10;
+      else if (className.includes('financial-stability') || text.includes('재무안정성')) priority = 10;
       else if (['h3', 'h4'].includes(tagName)) priority = 8;
       else if (className.includes('bg-blue-50')) priority = 7;
       else if (className.includes('section-header')) priority = 6;
       else if (className.includes('analysis')) priority = 5;
       else if (text.includes('분석')) priority = 4;
-      else if (text.includes('수익성') || text.includes('안정성') || text.includes('효율성'))
-        priority = 3;
+      else if (text.includes('수익성') || text.includes('안정성') || text.includes('효율성')) priority = 3;
 
       sectionPositions.push({
         element: section,
@@ -550,7 +541,8 @@ export default class PdfGenerationService {
       // 현재 위치에서 이상적인 지점 사이의 모든 섹션 찾기
       const candidateSections = sectionPositions.filter(
         section =>
-          section.top > currentY && section.top <= idealNextBreakPoint + maxPagePixels * 0.4
+          section.top > currentY &&
+          section.top <= idealNextBreakPoint + maxPagePixels * 0.4
       );
 
       let bestBreakPoint = idealNextBreakPoint;
@@ -569,12 +561,9 @@ export default class PdfGenerationService {
 
           // 보너스 점수 계산
           const sectionBonus = candidate.element.className.includes('report-section') ? 0.3 : 0;
-          const newsBonus =
-            candidate.element.className.includes('news-section') ||
-            candidate.text.includes('뉴스') ||
-            candidate.text.includes('관련 최신 기사')
-              ? 0.25
-              : 0;
+          const newsBonus = (candidate.element.className.includes('news-section') ||
+                           candidate.text.includes('뉴스') ||
+                           candidate.text.includes('관련 최신 기사')) ? 0.25 : 0;
           const specialBonus = candidate.text.includes('재무안정성') ? 0.2 : 0;
 
           const totalScore =
@@ -596,9 +585,7 @@ export default class PdfGenerationService {
         }
 
         bestBreakPoint = bestCandidate.top;
-        devLog(
-          `최적 분할점 선택: "${bestCandidate.text.substring(0, 30)}..." (점수: ${bestScore.toFixed(2)})`
-        );
+        devLog(`최적 분할점 선택: "${bestCandidate.text.substring(0, 30)}..." (점수: ${bestScore.toFixed(2)})`);
 
         // 5. 섹션이 너무 클 경우 처리
         if (bestCandidate.height > maxPagePixels * 1.2) {
@@ -645,9 +632,7 @@ export default class PdfGenerationService {
       breakPoints.push(bestBreakPoint);
       currentY = bestBreakPoint;
 
-      devLog(
-        `페이지 ${breakPoints.length} 추가: ${Math.round(currentY)}px (높이: ${Math.round(pageHeight)}px)`
-      );
+      devLog(`페이지 ${breakPoints.length} 추가: ${Math.round(currentY)}px (높이: ${Math.round(pageHeight)}px)`);
     }
 
     // 마지막 페이지 추가
@@ -655,10 +640,7 @@ export default class PdfGenerationService {
       breakPoints.push(totalCanvasHeight);
     }
 
-    devLog(
-      '최종 페이지 나누기 지점:',
-      breakPoints.map(p => Math.round(p))
-    );
+    devLog('최종 페이지 나누기 지점:', breakPoints.map(p => Math.round(p)));
     devLog('총 페이지 수:', breakPoints.length);
 
     return breakPoints;

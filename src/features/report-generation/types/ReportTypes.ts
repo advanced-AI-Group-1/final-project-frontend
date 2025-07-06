@@ -90,21 +90,25 @@ export interface SummaryCardStructured {
       value: number;
       evaluation: string;
       color_grade?: string;
+      display_value?: string;
     };
     roe: {
       value: number;
       evaluation: string;
       color_grade?: string;
+      display_value?: string;
     };
     debt_ratio: {
       value: number;
       evaluation: string;
       color_grade?: string;
+      display_value?: string;
     };
     operating_profit_margin: {
       value: number;
       evaluation: string;
       color_grade?: string;
+      display_value?: string;
     };
   };
   credit_rating_trend: {
