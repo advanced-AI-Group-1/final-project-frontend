@@ -62,15 +62,11 @@ const ReportSummaryCard: React.FC<SummaryCardProps> = ({
               <div className='text-sm text-gray-600'>
                 <span className='font-semibold text-gray-800'>주요 강점 키워드: </span>
               </div>
-              <div className='text-sm text-gray-700 break-words mb-1 font-light'>
-                강한 재무건전성, 안정적인 신용 전망, 높은 이익률
-              </div>
+              <div className='text-sm text-gray-700 break-words mb-1 font-light'>데이터 없음</div>
               <div className='text-sm text-gray-600'>
                 <span className='font-semibold text-gray-800'>주요 약점 키워드: </span>
               </div>
-              <div className='text-sm text-gray-700 break-words font-light'>
-                시장 위험, 부채비율 증가, 매출증장 불확실성
-              </div>
+              <div className='text-sm text-gray-700 break-words font-light'>데이터 없음</div>
             </div>
           </div>
         </div>
@@ -207,7 +203,8 @@ const ReportSummaryCard: React.FC<SummaryCardProps> = ({
             <div
               className={`text-2xl font-bold mb-1 ${getMetricColor(summaryCardData.financial_metrics.roa)}`}
             >
-              {summaryCardData.financial_metrics.roa.value}%
+              {summaryCardData.financial_metrics.roa.display_value ||
+                `${summaryCardData.financial_metrics.roa.value * 100}%`}
             </div>
             <div className='text-xs text-gray-600'>
               ROA ({summaryCardData.financial_metrics.roa.evaluation})
@@ -217,7 +214,8 @@ const ReportSummaryCard: React.FC<SummaryCardProps> = ({
             <div
               className={`text-2xl font-bold mb-1 ${getMetricColor(summaryCardData.financial_metrics.roe)}`}
             >
-              {summaryCardData.financial_metrics.roe.value}%
+              {summaryCardData.financial_metrics.roe.display_value ||
+                `${summaryCardData.financial_metrics.roe.value * 100}%`}
             </div>
             <div className='text-xs text-gray-600'>
               ROE ({summaryCardData.financial_metrics.roe.evaluation})
@@ -227,7 +225,8 @@ const ReportSummaryCard: React.FC<SummaryCardProps> = ({
             <div
               className={`text-2xl font-bold mb-1 ${getMetricColor(summaryCardData.financial_metrics.debt_ratio)}`}
             >
-              {summaryCardData.financial_metrics.debt_ratio.value}%
+              {summaryCardData.financial_metrics.debt_ratio.display_value ||
+                `${summaryCardData.financial_metrics.debt_ratio.value * 100}%`}
             </div>
             <div className='text-xs text-gray-600'>
               부채비율 ({summaryCardData.financial_metrics.debt_ratio.evaluation})
@@ -237,7 +236,8 @@ const ReportSummaryCard: React.FC<SummaryCardProps> = ({
             <div
               className={`text-2xl font-bold mb-1 ${getMetricColor(summaryCardData.financial_metrics.operating_profit_margin)}`}
             >
-              {summaryCardData.financial_metrics.operating_profit_margin.value}%
+              {summaryCardData.financial_metrics.operating_profit_margin.display_value ||
+                `${summaryCardData.financial_metrics.operating_profit_margin.value * 100}%`}
             </div>
             <div className='text-xs text-gray-600'>
               영업이익률 ({summaryCardData.financial_metrics.operating_profit_margin.evaluation})
