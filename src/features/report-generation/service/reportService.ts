@@ -1,5 +1,8 @@
-import { useMutation } from "@tanstack/react-query";
-import api from "@/shared/config/axios";
+import { useMutation } from '@tanstack/react-query';
+import api from '@/shared/config/axios';
+
+// SSE 보고서 생성 URL
+export const SSE_REPORT_URL = `${import.meta.env.VITE_AI_SERVER_URL || 'http://localhost:8000'}/api/ai/v1/report/generate-from-financial-data/sse`;
 
 interface FinancialData {
   corp_code: string;
@@ -21,13 +24,13 @@ interface FinancialData {
 interface ReportRequest {
   company_name: string;
   financial_data: FinancialData;
-  report_type: "agent_based";
+  report_type: 'agent_based';
   additional_context?: string;
 }
 
 // 보고서 생성 요청 함수
 const generateReport = async (requestData: ReportRequest) => {
-  const response = await api.post("/api/query/financial", requestData);
+  const response = await api.post('/api/query/financial', requestData);
   return response.data;
 };
 
