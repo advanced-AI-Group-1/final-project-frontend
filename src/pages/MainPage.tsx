@@ -5,7 +5,7 @@ import Header from '../shared/components/Header';
 import FinancialInputModal from '../features/finanacial-form/components/FinancialInputModal.tsx';
 
 import api from "@/shared/config/axios";
-import { useAuth } from '@/context/AuthContext'; // ✅ 추가
+import { useAuthState } from '@/shared/hooks/useAuthState'; 
 import Footer from '@/shared/components/Footer';
 
 const MainPage: React.FC = () => {
@@ -16,7 +16,7 @@ const MainPage: React.FC = () => {
   const [line1, setLine1] = useState('');
   const [line2, setLine2] = useState('');
 
-  const { login } = useAuth(); // ✅ 추가
+  const { login } = useAuthState(); 
 
   const fullLine1 = '데이터를 읽고, 신뢰를 만든다.';
   const fullLine2 = 'AI 신용분석의 새로운 기준,';
@@ -28,13 +28,13 @@ const MainPage: React.FC = () => {
       console.log('[OAuth2] 받은 JWT:', token);
       localStorage.setItem('token', token);
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      login(); // ✅ 반드시 호출
+      login(); 
       window.history.replaceState({}, document.title, window.location.pathname);
     } else {
       const saved = localStorage.getItem('token');
       if (saved) {
         api.defaults.headers.common['Authorization'] = `Bearer ${saved}`;
-        login(); // ✅ 이 경우도 로그인 상태 true 유지
+        login(); 
       }
     }
   }, []);
@@ -91,7 +91,7 @@ const MainPage: React.FC = () => {
       <Header onBack={handleBack} transparent />
       <FinancialInputModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
-      {/* ✅ 메인 콘텐츠 영역 */}
+      {/* 메인 콘텐츠 영역 */}
       <main className="flex-grow relative">
         <div className='absolute top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center space-y-10'>
           <div

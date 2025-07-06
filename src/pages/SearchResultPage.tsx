@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '@/shared/components/Header';
 import Footer from '@/shared/components/Footer'; // Footer 불러오기
-import { useAuth } from '@/context/AuthContext';
+import { useAuthState } from '@/shared/hooks/useAuthState';
 import FinancialInputModal from '@/features/finanacial-form/components/FinancialInputModal.tsx';
 import { useAtom } from 'jotai';
 import { companyInfoAtom, creditRatingAtom, financialDataAtom } from '@/shared/store/atoms.ts';
@@ -21,7 +21,7 @@ import { useSseSearch } from '@/features/search/hooks/useSseSearch';
 const SearchResultPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn } = useAuthState();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [input, setInput] = useState('');

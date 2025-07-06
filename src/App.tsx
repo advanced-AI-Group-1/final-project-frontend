@@ -1,14 +1,17 @@
 // src/app/App.tsx
 import PageRouter from '@/shared/components/PageRouter.tsx';
-import { AuthProvider } from '@/context/AuthContext';
+import { Provider } from 'jotai';
+import AuthInitializer from '@/shared/components/AuthInitializer';
 
 function App() {
   return (
-    <AuthProvider>
-      <div className="w-screen h-screen">
-        <PageRouter />
-      </div>
-    </AuthProvider>
+    <Provider>
+      <AuthInitializer>
+        <div className="w-screen h-screen">
+          <PageRouter />
+        </div>
+      </AuthInitializer>
+    </Provider>
   );
 }
 
