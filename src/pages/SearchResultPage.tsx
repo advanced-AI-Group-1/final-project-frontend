@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '@/shared/components/Header';
-import Footer from '@/shared/components/Footer'; // ✅ Footer 불러오기
-
+import Footer from '@/shared/components/Footer'; // Footer 불러오기
 import { useAuth } from '@/context/AuthContext';
 import FinancialInputModal from '@/features/finanacial-form/components/FinancialInputModal.tsx';
 import { useAtom } from 'jotai';
@@ -10,7 +9,14 @@ import { companyInfoAtom, creditRatingAtom, financialDataAtom } from '@/shared/s
 import { devLog } from '@/shared/util/logger';
 
 import { useQueryResult } from '@/features/mainpage/service/queryService';
-import { useReportMutation } from '@/features/report-generation/service/reportService';
+import {
+  SSE_REPORT_URL,
+  useReportMutation,
+  fetchReport,
+  saveReport,
+  useSaveReportMutation,
+} from '@/features/report-generation/service/reportService';
+import { useSseSearch } from '@/features/search/hooks/useSseSearch';
 
 const SearchResultPage: React.FC = () => {
   const navigate = useNavigate();
@@ -20,6 +26,13 @@ const SearchResultPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [input, setInput] = useState('');
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [reportSseMsg, setReportSseMsg] = useState({
+    message: '',
+    step: '',
+    progress: 0,
+  });
+  const [, setReportProgress] = useState(0);
+  const [selectedCompany, setSelectedCompany] = useState<any>(null);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -30,129 +43,180 @@ const SearchResultPage: React.FC = () => {
   const queryParams = new URLSearchParams(location.search);
   const keyword = queryParams.get('keyword')?.trim() || '';
 
-  // ✅ React Query 훅 호출 (keyword가 있을 때만 실행)
+  // React Query 훅 호출 (keyword가 있을 때만 실행)
   const { data, isLoading, error } = useQueryResult(keyword, 8);
 
-  // ✅ 보고서 생성 mutation 훅 호출
+  // 보고서 생성 mutation 훅 호출
   const reportMutation = useReportMutation();
+
+  // SSE 훅 사용
+  const {
+    isLoading: isSseLoading,
+    progress,
+    result: sseResult,
+    startSseConnection,
+    stopSseConnection,
+  } = useSseSearch();
+
+  // 보고서 저장을 위한 mutation 훅
+  const saveReportMutation = useSaveReportMutation();
 
   // jotai atom
   const [, setFinancialData] = useAtom(financialDataAtom);
   const [, setCreditRating] = useAtom(creditRatingAtom);
   const [, setCompanyInfo] = useAtom(companyInfoAtom);
 
+  // SSE 결과가 있을 때 보고서 페이지로 이동
+  useEffect(() => {
+    if (sseResult && selectedCompany && isGeneratingReport) {
+      devLog('SSE 결과로 보고서 페이지 이동:', sseResult);
+      setIsGeneratingReport(false);
+      
+      navigate('/report', {
+        state: {
+          reportData: sseResult,
+          companyData: {
+            company_name: selectedCompany.company_name,
+            financial_data: selectedCompany.financial_data,
+            similarity_score: selectedCompany.similarity_score,
+          },
+        },
+      });
+    }
+  }, [sseResult, selectedCompany, navigate, isGeneratingReport]);
+
   const handleBack = () => {
     navigate('/');
   };
 
-  const handleSelect = (company: any) => {
-    if (isGeneratingReport) {
-      return;
-    }
-
+  const handleSelect = async (company: any) => {
+    setSelectedCompany(company);
     setIsGeneratingReport(true);
 
-    // 보고서 생성 요청 데이터 준비
-    const financialData = company.financial_data;
+    try {
+      // 1. 먼저 기존 보고서가 있는지 확인
+      devLog('보고서 조회 시도:', company.company_name);
+      const reportResponse = await fetchReport(company.company_name);
+      
+      // 2. 보고서가 있으면 바로 보고서 페이지로 이동
+      if (reportResponse.exists && reportResponse.report) {
+        devLog('기존 보고서 발견:', reportResponse.report);
+        setIsGeneratingReport(false);
+        
+        navigate('/report', {
+          state: {
+            reportData: reportResponse.report,
+            companyData: {
+              company_name: company.company_name,
+              financial_data: company.financial_data,
+              similarity_score: company.similarity_score,
+            },
+          },
+        });
+        return;
+      }
+      
+      // 3. 보고서가 없으면 SSE로 보고서 생성
+      devLog('보고서가 없어 새로 생성합니다.');
+      
+      // 재무 데이터 가져오기
+      const financialData = company.financial_data;
 
-    setFinancialData({
-      ROA: financialData?.ROA || 0,
-      ROE: financialData?.ROE || 0,
-      debt_ratio: financialData?.debt_ratio || 0,
-      asset_turnover_ratio: financialData?.asset_turnover_ratio || 0,
-      interest_to_assets_ratio: financialData?.interest_to_assets_ratio || 0,
-    });
+      // 보고서 생성 요청 데이터 구성
+      const reportRequest = {
+        company_name: company.company_name,
+        financial_data: {
+          corp_code: financialData?.corp_code || '',
+          corp_name: financialData?.corp_name || company.company_name,
+          market_type: financialData?.market_type || '',
+          industry_name: financialData?.industry_name || '',
+          revenue: financialData?.revenue || 0,
+          operating_profit: financialData?.operating_profit || 0,
+          net_income: financialData?.net_income || 0,
+          total_assets: financialData?.total_assets || 0,
+          total_liabilities: financialData?.total_liabilities || 0,
+          total_equity: financialData?.total_equity || 0,
+          debt_ratio: financialData?.debt_ratio || 0,
+          ROA: financialData?.ROA || 0,
+          ROE: financialData?.ROE || 0,
+          asset_turnover_ratio: financialData?.asset_turnover_ratio || 0,
+          interest_to_assets_ratio: financialData?.interest_to_assets_ratio || 0,
+          interest_to_revenue_ratio: financialData?.interest_to_revenue_ratio || 0,
+          cash_flow_to_interest: financialData?.cash_flow_to_interest || null,
+          interest_to_cash_flow: financialData?.interest_to_cash_flow || null,
+          log_total_assets: financialData?.log_total_assets || 0,
+          log_total_liabilities: financialData?.log_total_liabilities || 0,
+          positive_factors: financialData?.positive_factors || null,
+          negative_factors: financialData?.negative_factors || null,
+          description:
+            financialData?.description ||
+            `${company.company_name} - ${financialData?.industry_name || ''} - ${financialData?.market_type || ''}`,
+        },
+        report_type: 'agent_based' as const,
+      };
 
-    // 회사 정보 저장
-    setCompanyInfo({
-      company_name: company.company_name,
-      industry_name: financialData?.industry_name || '정보 없음',
-      market_type: financialData?.market_type || '정보 없음',
-    });
+      // SSE 연결 시작 - 기업 선택 시 보고서 생성을 위한 SSE
+      startSseConnection(reportRequest, {
+        url: SSE_REPORT_URL,
+        onMessage: data => {
+          devLog('SSE 메시지 수신:', data);
+          setReportSseMsg(data);
+        },
+        onProgress: progress => {
+          devLog('보고서 생성 진행률:', progress);
+          setReportProgress(progress);
+        },
+        onComplete: async (result) => {
+          devLog('보고서 생성 완료:', result);
+          setIsGeneratingReport(false);
 
-    // 신용등급이 있으면 저장 (API에서 제공하는 경우)
-    if (financialData?.credit_rating) {
-      setCreditRating(financialData.credit_rating);
+          // 데이터가 유효한지 확인
+          if (!result) {
+            devLog('보고서 데이터가 없습니다.');
+            alert('보고서 데이터를 받지 못했습니다.');
+            return;
+          }
+
+          try {
+            // 4. 생성된 보고서 저장
+            await saveReport({
+              company_name: company.company_name,
+              report: result
+            });
+            devLog('보고서 저장 완료');
+            
+            // 5. 보고서 페이지로 이동하면서 데이터 전달
+            navigate('/report', {
+              state: {
+                reportData: result,
+                companyData: {
+                  company_name: company.company_name,
+                  financial_data: company.financial_data,
+                  similarity_score: company.similarity_score,
+                },
+              },
+            });
+          } catch (error) {
+            devLog('보고서 저장 또는 페이지 이동 오류:', error);
+            alert('보고서 저장 중 오류가 발생했습니다.');
+          }
+        },
+        onError: error => {
+          devLog('보고서 생성 오류:', error);
+          setIsGeneratingReport(false);
+          alert('보고서 생성 중 오류가 발생했습니다.');
+        },
+      });
+    } catch (error) {
+      devLog('보고서 처리 중 오류:', error);
+      setIsGeneratingReport(false);
+      alert('보고서 처리 중 오류가 발생했습니다.');
     }
-
-    const reportRequest = {
-      company_name: company.company_name,
-      similarity_score: company.similarity_score,
-      financial_data: {
-        corp_code: financialData?.corp_code || '',
-        corp_name: financialData?.corp_name || '',
-        market_type: financialData?.market_type || '',
-        industry_name: financialData?.industry_name || '',
-        is_consolidated: financialData?.is_consolidated || false,
-        revenue: financialData?.revenue || 0,
-        operating_profit: financialData?.operating_profit || 0,
-        net_income: financialData?.net_income || 0,
-        total_assets: financialData?.total_assets || 0,
-        total_liabilities: financialData?.total_liabilities || 0,
-        total_equity: financialData?.total_equity || 0,
-        capital: financialData?.capital || 0,
-        operating_cash_flow: financialData?.operating_cash_flow || 0,
-        interest_bearing_debt: financialData?.interest_bearing_debt || 0,
-        debt_ratio: financialData?.debt_ratio || 0,
-        ROA: financialData?.ROA || 0,
-        ROE: financialData?.ROE || 0,
-        asset_turnover_ratio: financialData?.asset_turnover_ratio || 0,
-        interest_to_assets_ratio: financialData?.interest_to_assets_ratio || 0,
-        interest_to_revenue_ratio: financialData?.interest_to_revenue_ratio || 0,
-        cash_flow_to_interest: financialData?.cash_flow_to_interest || null,
-        interest_to_cash_flow: financialData?.interest_to_cash_flow || null,
-        log_total_assets: financialData?.log_total_assets || 0,
-        log_total_liabilities: financialData?.log_total_liabilities || 0,
-        positive_factors: financialData?.positive_factors || null,
-        negative_factors: financialData?.negative_factors || null,
-        description:
-          financialData?.description ||
-          `${company.company_name} - ${financialData?.industry_name || ''} - ${financialData?.market_type || ''}`,
-      },
-      report_type: 'agent_based' as const,
-    };
-
-    // 보고서 생성 API 호출
-    reportMutation.mutate(reportRequest, {
-      onSuccess: data => {
-        devLog('보고서 생성 성공:', data);
-        setIsGeneratingReport(false);
-        
-        // 데이터가 유효한지 확인
-        if (!data) {
-          devLog('보고서 데이터가 없습니다.');
-          alert('보고서 데이터를 받지 못했습니다.');
-          return;
-        }
-        
-        // 보고서 페이지로 이동하면서 데이터 전달
-        try {
-          navigate('/report', {
-            state: {
-              reportData: data,
-              companyData: {
-                company_name: company.company_name,
-                financial_data: company.financial_data,
-                similarity_score: company.similarity_score
-              }
-            }
-          });
-        } catch (error) {
-          devLog('페이지 이동 오류:', error);
-          alert('페이지 이동 중 오류가 발생했습니다.');
-        }
-      },
-      onError: error => {
-        setIsGeneratingReport(false);
-        devLog('보고서 생성 오류:', error);
-        alert('보고서 생성 중 오류가 발생했습니다.');
-      },
-    });
   };
 
   return (
     <div className='relative min-h-screen flex flex-col'>
-      {/* 🔹 배경 이미지 */}
+      {/* 배경 이미지 */}
       <div
         className='absolute inset-0 bg-cover bg-center z-0'
         style={{
@@ -160,7 +224,7 @@ const SearchResultPage: React.FC = () => {
         }}
       />
 
-      {/* 🔹 상단 그라데이션 */}
+      {/* 상단 그라데이션 */}
       <div className='absolute top-0 left-0 w-full h-[80%] z-10 pointer-events-none bg-gradient-to-b from-white via-white/95 via-70% to-white/0' />
 
       <div className='relative z-20 flex flex-col'>
@@ -169,7 +233,7 @@ const SearchResultPage: React.FC = () => {
 
         <div className='w-full flex flex-col items-center justify-start px-6 py-8'>
           <div className='w-full max-w-screen-lg'>
-            {/* 🔍 검색창 */}
+            {/* 검색창 */}
             <div className='flex flex-row items-center justify-center mb-18 mt-10 space-x-4'>
               <input
                 type='text'
@@ -203,20 +267,18 @@ const SearchResultPage: React.FC = () => {
               </button>
             </div>
 
-            {/* 🔎 결과 수 */}
+            {/* 결과 수 */}
             <div className='mb-6 text-gray-700 text-lg font-semibold text-left px-2'>
-              🔍 관련 기업 검색 결과 ({data?.length || 0}개)
+              관련 기업 검색 결과 ({data?.length || 0}개)
             </div>
 
-            {/* ✅ 기업 리스트 */}
+            {/* 기업 리스트 */}
             {isLoading && (
-              <div className='text-blue-500 text-center'>⏳ 백엔드 응답 기다리는 중...</div>
+              <div className='text-blue-500 text-center'>백엔드 응답 기다리는 중...</div>
             )}
 
             {error && (
-              <div className='text-red-500 text-center'>
-                ❌ 오류 발생: {(error as Error).message}
-              </div>
+              <div className='text-red-500 text-center'>오류 발생: {(error as Error).message}</div>
             )}
 
             {!isLoading && !error && (!data || data.length === 0) ? (
@@ -257,7 +319,7 @@ const SearchResultPage: React.FC = () => {
                   <p className='text-gray-600'>
                     기업 데이터를 분석하여 보고서를 생성하고 있습니다.
                     <br />
-                    잠시만 기다려주세요...
+                    {reportSseMsg == null ? '잠시만 기다려주세요...' : reportSseMsg.message}
                   </p>
                 </div>
               </div>
@@ -266,7 +328,7 @@ const SearchResultPage: React.FC = () => {
         </div>
       </div>
 
-      <Footer variant="white" />
+      <Footer variant='white' />
     </div>
   );
 };
