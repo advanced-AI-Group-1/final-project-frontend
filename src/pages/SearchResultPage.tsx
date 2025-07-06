@@ -12,6 +12,9 @@ import { useQueryResult } from '@/features/mainpage/service/queryService';
 import {
   SSE_REPORT_URL,
   useReportMutation,
+  fetchReport,
+  saveReport,
+  useSaveReportMutation,
 } from '@/features/report-generation/service/reportService';
 import { useSseSearch } from '@/features/search/hooks/useSseSearch';
 
@@ -29,6 +32,7 @@ const SearchResultPage: React.FC = () => {
     progress: 0,
   });
   const [, setReportProgress] = useState(0);
+  const [selectedCompany, setSelectedCompany] = useState<any>(null);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -47,174 +51,167 @@ const SearchResultPage: React.FC = () => {
 
   // SSE 훅 사용
   const {
+    isLoading: isSseLoading,
+    progress,
+    result: sseResult,
     startSseConnection,
     stopSseConnection,
-    progress,
-    logs,
-    result: sseResult,
-    error: sseError,
   } = useSseSearch();
+
+  // 보고서 저장을 위한 mutation 훅
+  const saveReportMutation = useSaveReportMutation();
 
   // jotai atom
   const [, setFinancialData] = useAtom(financialDataAtom);
   const [, setCreditRating] = useAtom(creditRatingAtom);
   const [, setCompanyInfo] = useAtom(companyInfoAtom);
 
+  // SSE 결과가 있을 때 보고서 페이지로 이동
+  useEffect(() => {
+    if (sseResult && selectedCompany && isGeneratingReport) {
+      devLog('SSE 결과로 보고서 페이지 이동:', sseResult);
+      setIsGeneratingReport(false);
+      
+      navigate('/report', {
+        state: {
+          reportData: sseResult,
+          companyData: {
+            company_name: selectedCompany.company_name,
+            financial_data: selectedCompany.financial_data,
+            similarity_score: selectedCompany.similarity_score,
+          },
+        },
+      });
+    }
+  }, [sseResult, selectedCompany, navigate, isGeneratingReport]);
+
   const handleBack = () => {
     navigate('/');
   };
 
-  const handleSelect = (company: any) => {
-    if (isGeneratingReport) {
-      return;
-    }
-
+  const handleSelect = async (company: any) => {
+    setSelectedCompany(company);
     setIsGeneratingReport(true);
 
-    // 보고서 생성 요청 데이터 준비
-    const financialData = company.financial_data;
-
-    setFinancialData({
-      ROA: financialData?.ROA || 0,
-      ROE: financialData?.ROE || 0,
-      debt_ratio: financialData?.debt_ratio || 0,
-      asset_turnover_ratio: financialData?.asset_turnover_ratio || 0,
-      interest_to_assets_ratio: financialData?.interest_to_assets_ratio || 0,
-    });
-
-    // 회사 정보 저장
-    setCompanyInfo({
-      company_name: company.company_name,
-      industry_name: financialData?.industry_name || '정보 없음',
-      market_type: financialData?.market_type || '정보 없음',
-    });
-
-    // 신용등급이 있으면 저장 (API에서 제공하는 경우)
-    if (financialData?.credit_rating) {
-      setCreditRating(financialData.credit_rating);
-    }
-
-    const reportRequest = {
-      company_name: company.company_name,
-      similarity_score: company.similarity_score,
-      financial_data: {
-        corp_code: financialData?.corp_code || '',
-        corp_name: financialData?.corp_name || '',
-        market_type: financialData?.market_type || '',
-        industry_name: financialData?.industry_name || '',
-        is_consolidated: financialData?.is_consolidated || false,
-        revenue: financialData?.revenue || 0,
-        operating_profit: financialData?.operating_profit || 0,
-        net_income: financialData?.net_income || 0,
-        total_assets: financialData?.total_assets || 0,
-        total_liabilities: financialData?.total_liabilities || 0,
-        total_equity: financialData?.total_equity || 0,
-        capital: financialData?.capital || 0,
-        operating_cash_flow: financialData?.operating_cash_flow || 0,
-        interest_bearing_debt: financialData?.interest_bearing_debt || 0,
-        debt_ratio: financialData?.debt_ratio || 0,
-        ROA: financialData?.ROA || 0,
-        ROE: financialData?.ROE || 0,
-        asset_turnover_ratio: financialData?.asset_turnover_ratio || 0,
-        interest_to_assets_ratio: financialData?.interest_to_assets_ratio || 0,
-        interest_to_revenue_ratio: financialData?.interest_to_revenue_ratio || 0,
-        cash_flow_to_interest: financialData?.cash_flow_to_interest || null,
-        interest_to_cash_flow: financialData?.interest_to_cash_flow || null,
-        log_total_assets: financialData?.log_total_assets || 0,
-        log_total_liabilities: financialData?.log_total_liabilities || 0,
-        positive_factors: financialData?.positive_factors || null,
-        negative_factors: financialData?.negative_factors || null,
-        description:
-          financialData?.description ||
-          `${company.company_name} - ${financialData?.industry_name || ''} - ${financialData?.market_type || ''}`,
-      },
-      report_type: 'agent_based' as const,
-    };
-
-    // SSE 연결 시작 - 기업 선택 시 보고서 생성을 위한 SSE
-    startSseConnection(reportRequest, {
-      url: SSE_REPORT_URL,
-      onMessage: data => {
-        devLog('SSE 메시지 수신:', data);
-        setReportSseMsg(data);
-      },
-      onProgress: progress => {
-        devLog('보고서 생성 진행률:', progress);
-        setReportProgress(progress);
-      },
-      onComplete: result => {
-        devLog('보고서 생성 완료:', result);
+    try {
+      // 1. 먼저 기존 보고서가 있는지 확인
+      devLog('보고서 조회 시도:', company.company_name);
+      const reportResponse = await fetchReport(company.company_name);
+      
+      // 2. 보고서가 있으면 바로 보고서 페이지로 이동
+      if (reportResponse.exists && reportResponse.report) {
+        devLog('기존 보고서 발견:', reportResponse.report);
         setIsGeneratingReport(false);
-
-        // 데이터가 유효한지 확인
-        if (!result) {
-          devLog('보고서 데이터가 없습니다.');
-          alert('보고서 데이터를 받지 못했습니다.');
-          return;
-        }
-
-        // 보고서 페이지로 이동하면서 데이터 전달
-        try {
-          navigate('/report', {
-            state: {
-              reportData: result,
-              companyData: {
-                company_name: company.company_name,
-                financial_data: company.financial_data,
-                similarity_score: company.similarity_score,
-              },
+        
+        navigate('/report', {
+          state: {
+            reportData: reportResponse.report,
+            companyData: {
+              company_name: company.company_name,
+              financial_data: company.financial_data,
+              similarity_score: company.similarity_score,
             },
-          });
-        } catch (error) {
-          devLog('페이지 이동 오류:', error);
-          alert('페이지 이동 중 오류가 발생했습니다.');
-        }
-      },
-      onError: error => {
-        devLog('보고서 생성 오류:', error);
-        setIsGeneratingReport(false);
-        alert('보고서 생성 중 오류가 발생했습니다.');
-      },
-    });
+          },
+        });
+        return;
+      }
+      
+      // 3. 보고서가 없으면 SSE로 보고서 생성
+      devLog('보고서가 없어 새로 생성합니다.');
+      
+      // 재무 데이터 가져오기
+      const financialData = company.financial_data;
 
-    // 기존 보고서 생성 API 호출 코드는 주석 처리 (SSE로 대체)
-    /*
-    reportMutation.mutate(reportRequest, {
-      onSuccess: data => {
-        devLog('보고서 생성 성공:', data);
-        setIsGeneratingReport(false);
-        
-        // 데이터가 유효한지 확인
-        if (!data) {
-          devLog('보고서 데이터가 없습니다.');
-          alert('보고서 데이터를 받지 못했습니다.');
-          return;
-        }
-        
-        // 보고서 페이지로 이동하면서 데이터 전달
-        try {
-          navigate('/report', {
-            state: {
-              reportData: data,
-              companyData: {
-                company_name: company.company_name,
-                financial_data: company.financial_data,
-                similarity_score: company.similarity_score
-              }
-            }
-          });
-        } catch (error) {
-          devLog('페이지 이동 오류:', error);
-          alert('페이지 이동 중 오류가 발생했습니다.');
-        }
-      },
-      onError: error => {
-        setIsGeneratingReport(false);
-        devLog('보고서 생성 오류:', error);
-        alert('보고서 생성 중 오류가 발생했습니다.');
-      },
-    });
-    */
+      // 보고서 생성 요청 데이터 구성
+      const reportRequest = {
+        company_name: company.company_name,
+        financial_data: {
+          corp_code: financialData?.corp_code || '',
+          corp_name: financialData?.corp_name || company.company_name,
+          market_type: financialData?.market_type || '',
+          industry_name: financialData?.industry_name || '',
+          revenue: financialData?.revenue || 0,
+          operating_profit: financialData?.operating_profit || 0,
+          net_income: financialData?.net_income || 0,
+          total_assets: financialData?.total_assets || 0,
+          total_liabilities: financialData?.total_liabilities || 0,
+          total_equity: financialData?.total_equity || 0,
+          debt_ratio: financialData?.debt_ratio || 0,
+          ROA: financialData?.ROA || 0,
+          ROE: financialData?.ROE || 0,
+          asset_turnover_ratio: financialData?.asset_turnover_ratio || 0,
+          interest_to_assets_ratio: financialData?.interest_to_assets_ratio || 0,
+          interest_to_revenue_ratio: financialData?.interest_to_revenue_ratio || 0,
+          cash_flow_to_interest: financialData?.cash_flow_to_interest || null,
+          interest_to_cash_flow: financialData?.interest_to_cash_flow || null,
+          log_total_assets: financialData?.log_total_assets || 0,
+          log_total_liabilities: financialData?.log_total_liabilities || 0,
+          positive_factors: financialData?.positive_factors || null,
+          negative_factors: financialData?.negative_factors || null,
+          description:
+            financialData?.description ||
+            `${company.company_name} - ${financialData?.industry_name || ''} - ${financialData?.market_type || ''}`,
+        },
+        report_type: 'agent_based' as const,
+      };
+
+      // SSE 연결 시작 - 기업 선택 시 보고서 생성을 위한 SSE
+      startSseConnection(reportRequest, {
+        url: SSE_REPORT_URL,
+        onMessage: data => {
+          devLog('SSE 메시지 수신:', data);
+          setReportSseMsg(data);
+        },
+        onProgress: progress => {
+          devLog('보고서 생성 진행률:', progress);
+          setReportProgress(progress);
+        },
+        onComplete: async (result) => {
+          devLog('보고서 생성 완료:', result);
+          setIsGeneratingReport(false);
+
+          // 데이터가 유효한지 확인
+          if (!result) {
+            devLog('보고서 데이터가 없습니다.');
+            alert('보고서 데이터를 받지 못했습니다.');
+            return;
+          }
+
+          try {
+            // 4. 생성된 보고서 저장
+            await saveReport({
+              company_name: company.company_name,
+              report: result
+            });
+            devLog('보고서 저장 완료');
+            
+            // 5. 보고서 페이지로 이동하면서 데이터 전달
+            navigate('/report', {
+              state: {
+                reportData: result,
+                companyData: {
+                  company_name: company.company_name,
+                  financial_data: company.financial_data,
+                  similarity_score: company.similarity_score,
+                },
+              },
+            });
+          } catch (error) {
+            devLog('보고서 저장 또는 페이지 이동 오류:', error);
+            alert('보고서 저장 중 오류가 발생했습니다.');
+          }
+        },
+        onError: error => {
+          devLog('보고서 생성 오류:', error);
+          setIsGeneratingReport(false);
+          alert('보고서 생성 중 오류가 발생했습니다.');
+        },
+      });
+    } catch (error) {
+      devLog('보고서 처리 중 오류:', error);
+      setIsGeneratingReport(false);
+      alert('보고서 처리 중 오류가 발생했습니다.');
+    }
   };
 
   return (

@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 
 interface SseSearchOptions {
   url: string;
@@ -26,7 +25,7 @@ export const useSseSearch = () => {
     progress: 0,
     result: null,
     error: null,
-    logs: []
+    logs: [],
   });
 
   // 연결 종료를 위한 컨트롤러 참조
@@ -45,7 +44,7 @@ export const useSseSearch = () => {
       progress: 0,
       result: null,
       error: null,
-      logs: ['검색 요청을 시작합니다.']
+      logs: ['검색 요청을 시작합니다.'],
     });
 
     // 새 AbortController 생성
@@ -56,10 +55,10 @@ export const useSseSearch = () => {
       const response = await fetch(options.url, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestData),
-        signal: abortControllerRef.current.signal
+        signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {
@@ -79,12 +78,12 @@ export const useSseSearch = () => {
         try {
           while (true) {
             const { done, value } = await reader.read();
-            
+
             if (done) {
               setState(prev => ({
                 ...prev,
                 isLoading: false,
-                logs: [...prev.logs, '스트림이 종료되었습니다.']
+                logs: [...prev.logs, '스트림이 종료되었습니다.'],
               }));
               break;
             }
@@ -103,7 +102,17 @@ export const useSseSearch = () => {
               } else if (line.startsWith('data:')) {
                 try {
                   const dataStr = line.substring(5).trim();
-                  eventData = JSON.parse(dataStr);
+                  // 빈 데이터 체크 추가
+                  if (!dataStr) {
+                    continue;
+                  }
+                  
+                  try {
+                    eventData = JSON.parse(dataStr);
+                  } catch (parseError) {
+                    console.warn('불완전한 JSON 데이터:', dataStr);
+                    continue; // 파싱 실패 시 다음 라인으로 넘어감
+                  }
 
                   // 이벤트 처리
                   if (eventData) {
@@ -111,7 +120,7 @@ export const useSseSearch = () => {
                     if (eventData.message) {
                       setState(prev => ({
                         ...prev,
-                        logs: [...prev.logs, eventData.message]
+                        logs: [...prev.logs, eventData.message],
                       }));
                     }
 
@@ -119,17 +128,21 @@ export const useSseSearch = () => {
                     if (eventData.progress !== undefined) {
                       setState(prev => ({
                         ...prev,
-                        progress: eventData.progress
+                        progress: eventData.progress,
                       }));
                       options.onProgress?.(eventData.progress);
                     }
 
                     // 결과 처리
-                    if (eventData.result && (eventData.step === 'completed' || eventData.step === 'search_completed')) {
+                    if (
+                      eventData.result &&
+                      eventData.is_completed === true &&
+                      eventData.step === 'report_generation_completed'
+                    ) {
                       setState(prev => ({
                         ...prev,
                         result: eventData.result,
-                        isLoading: false
+                        isLoading: false,
                       }));
                       options.onComplete?.(eventData.result);
                     }
@@ -143,7 +156,7 @@ export const useSseSearch = () => {
                   setState(prev => ({
                     ...prev,
                     logs: [...prev.logs, `데이터 파싱 오류: ${error.message}`],
-                    error
+                    error,
                   }));
                   options.onError?.(error);
                 }
@@ -158,7 +171,7 @@ export const useSseSearch = () => {
               ...prev,
               isLoading: false,
               error: err,
-              logs: [...prev.logs, `오류 발생: ${err.message}`]
+              logs: [...prev.logs, `오류 발생: ${err.message}`],
             }));
             options.onError?.(err);
           }
@@ -174,7 +187,7 @@ export const useSseSearch = () => {
         ...prev,
         isLoading: false,
         error: err,
-        logs: [...prev.logs, `연결 오류: ${err.message}`]
+        logs: [...prev.logs, `연결 오류: ${err.message}`],
       }));
       options.onError?.(err);
     }
@@ -187,7 +200,7 @@ export const useSseSearch = () => {
         setState(prev => ({
           ...prev,
           isLoading: false,
-          logs: [...prev.logs, '컴포넌트 언마운트로 연결이 종료되었습니다.']
+          logs: [...prev.logs, '컴포넌트 언마운트로 연결이 종료되었습니다.'],
         }));
       }
     };
@@ -201,7 +214,7 @@ export const useSseSearch = () => {
       setState(prev => ({
         ...prev,
         isLoading: false,
-        logs: [...prev.logs, '사용자에 의해 연결이 종료되었습니다.']
+        logs: [...prev.logs, '사용자에 의해 연결이 종료되었습니다.'],
       }));
     }
   }, []);
@@ -209,7 +222,7 @@ export const useSseSearch = () => {
   return {
     ...state,
     startSseConnection,
-    stopSseConnection
+    stopSseConnection,
   };
 };
 
