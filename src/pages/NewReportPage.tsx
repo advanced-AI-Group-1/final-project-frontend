@@ -7,9 +7,7 @@ import { devLog } from '@/shared/util/logger';
 import Header from '@/shared/components/Header';
 import type { ReportData } from '@/features/report-generation/types/ReportTypes.ts';
 import {
-  useCreditRating,
-  useReportChartData,
-  useReportData,
+  useCreditRating, useReportChartData, useReportData,
 } from '@/features/report-generation/hooks/useReportData.ts';
 import CreditRatingUtils from '@/features/report-generation/util/CreditRatingUtils.ts';
 import { ReportDataExtractor } from '@/features/report-generation/util/ReportDataExtractor.ts';
@@ -175,7 +173,7 @@ const NewReportPage: React.FC = () => {
           {sections.length > 0 && sections[0] && (
             <div className='report-section avoid-break mb-8 page-break'>
               <h3 className='text-xl font-bold mb-4 text-gray-800 border-b-2 border-gray-200 pb-2'>
-                <div className='report-section-title'>{sections[0].title}</div>
+                <div className='report-section-title'>{sections[0].name}</div>
               </h3>
               {sections[0].description && (
                 <div className='bg-blue-50 p-4 rounded-lg mb-4'>
