@@ -1,7 +1,6 @@
 import React from 'react';
 import type {
-  RatingInfo,
-  SummaryCardStructured,
+  RatingInfo, SummaryCardStructured,
 } from '@/features/report-generation/types/ReportTypes.ts';
 
 interface SummaryCardProps {
