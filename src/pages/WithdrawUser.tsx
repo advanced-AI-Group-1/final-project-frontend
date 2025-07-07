@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWithdrawUser, type WithdrawUserError } from '@/features/mainpage/service/useWithdrawUser';
-import { useAuth } from '@/context/AuthContext';
-import Header from '../shared/components/Header'; // ✅ Header 추가
+import { useAuthState } from '@/shared/hooks/useAuthState';
+import Header from '../shared/components/Header'; // Header 
 
 const WarningIcon = () => (
   <svg
@@ -30,7 +30,7 @@ const WithdrawUser = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const { logout } = useAuth();
+  const { logout } = useAuthState();
   const { mutate, isPending } = useWithdrawUser();
 
   const handleOpenDialog = () => {

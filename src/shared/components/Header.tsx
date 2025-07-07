@@ -2,7 +2,7 @@
 import React from 'react';
 import { HiArrowLeft } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthState } from '@/shared/hooks/useAuthState';
 
 interface HeaderProps {
   onBack: () => void;
@@ -10,8 +10,8 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onBack, transparent = false }) => {
-  const { isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
+  const { isLoggedIn, logout } = useAuthState();
 
   const handleClick = () => {
     if (isLoggedIn) {

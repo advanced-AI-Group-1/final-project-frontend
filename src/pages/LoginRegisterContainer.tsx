@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styles from './LoginRegisterContainer.module.css';
 import Header from '../shared/components/Header';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthState } from '@/shared/hooks/useAuthState';
 import { dummyUsers } from '@/shared/data/dummyUsers';
 
 const LoginRegisterContainer: React.FC = () => {
@@ -10,17 +10,17 @@ const LoginRegisterContainer: React.FC = () => {
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login } = useAuthState();
 
-  // ✅ 회원가입 input 상태 추가
+  // 회원가입 input 상태 추가
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupPasswordConfirm, setSignupPasswordConfirm] = useState('');
 
-  // ✅ (기존 더미 유저 데이터 - 주석처리)
+  // 기존 더미 유저 데이터 - 주석처리
   const [users, setUsers] = useState(dummyUsers);
 
-  // ✅ USER 테이블 기준 더미데이터 예시
+  // USER 테이블 기준 더미데이터 예시
   // const [users, setUsers] = useState([
   //   {
   //     id: 1,
@@ -34,7 +34,7 @@ const LoginRegisterContainer: React.FC = () => {
   //   },
   // ]);
 
-  // ✅ 더미 로그인 로직 - 주석처리
+  // 더미 로그인 로직 - 주석처리
   // const handleLogin = (e: React.FormEvent) => {
   //   e.preventDefault();
   //   const matchedUser = users.find(
@@ -53,61 +53,61 @@ const LoginRegisterContainer: React.FC = () => {
   //   }
   // };
 
-  // ✅ 백엔드 연동 로그인
-const handleLogin = async (e: React.FormEvent) => {
+  // 백엔드 연동 로그인
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-        const response = await fetch('http://localhost:8080/api/user/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userId: emailInput.trim(),  // 변수명은 emailInput이지만 실제로는 userId를 보내고 있음
-                password: passwordInput,
-            }),
-        });
+      const response = await fetch('http://localhost:8080/api/user/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: emailInput.trim(),  // 변수명은 emailInput이지만 실제로는 userId를 보내고 있음
+          password: passwordInput,
+        }),
+      });
 
-        const data = await response.json();
-        if (response.ok) {
-            // 토큰 저장
-            localStorage.setItem('token', data.token);
-            login();  // 로그인 상태 업데이트
-            navigate('/');
-        } else {
-            alert(data.error || '로그인 실패! 아이디/비밀번호를 확인해주세요.');
-        }
+      const data = await response.json();
+      if (response.ok) {
+        // 토큰 저장 - 이제 login 함수 내에서 처리됨
+        login(data.token);  // 토큰을 직접 전달
+        navigate('/');
+      } else {
+        alert(data.error || '로그인 실패! 아이디/비밀번호를 확인해주세요.');
+      }
     } catch (error) {
-        console.error('로그인 오류:', error);
-        alert('로그인 요청 중 오류 발생!');
+      console.error('로그인 오류:', error);
+      alert('로그인 요청 중 오류 발생!');
     }
-};
-  // ✅ 백엔드 연동 회원가입
+  };
+
+  // 백엔드 연동 회원가입
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
-     // ✅ 여기부터 검증 로직 추가!
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
+    // 여기부터 검증 로직 추가!
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
 
-  if (!emailRegex.test(signupEmail.trim())) {
-    alert('유효한 이메일 형식이 아닙니다.');
-    return;
-  }
+    if (!emailRegex.test(signupEmail.trim())) {
+      alert('유효한 이메일 형식이 아닙니다.');
+      return;
+    }
 
-  if (!specialCharRegex.test(signupPassword)) {
-    alert('비밀번호에 특수문자가 1개 이상 포함되어야 합니다.');
-    return;
-  }
+    if (!specialCharRegex.test(signupPassword)) {
+      alert('비밀번호에 특수문자가 1개 이상 포함되어야 합니다.');
+      return;
+    }
 
-  if (signupPassword.length < 8 || signupPassword.length > 32) {
-    alert('비밀번호는 8자 이상 32자 이하로 입력해주세요.');
-    return;
-  }
+    if (signupPassword.length < 8 || signupPassword.length > 32) {
+      alert('비밀번호는 8자 이상 32자 이하로 입력해주세요.');
+      return;
+    }
 
-  if (signupPassword !== signupPasswordConfirm) {
-    alert('비밀번호가 일치하지 않습니다.');
-    return;
-  }
+    if (signupPassword !== signupPasswordConfirm) {
+      alert('비밀번호가 일치하지 않습니다.');
+      return;
+    }
 
     if (signupPassword !== signupPasswordConfirm) {
       alert('비밀번호가 일치하지 않습니다.');
